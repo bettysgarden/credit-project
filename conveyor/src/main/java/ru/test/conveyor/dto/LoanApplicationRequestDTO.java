@@ -12,30 +12,30 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoanApplicationRequestDTO {
-    @Schema(description = "Requested loan amount")
+    @Schema
     private BigDecimal amount;
 
-    @Schema(description = "Loan term in months")
+    @Schema
     private Integer term;
 
-    @Schema(description = "Applicant's first name")
+    @Schema
     private String firstName;
 
-    @Schema(description = "Applicant's last name")
+    @Schema
     private String lastName;
 
-    @Schema(description = "Applicant's middle name")
+    @Schema
     private String middleName;
 
-    @Schema(description = "Applicant's email address")
+    @Schema
     private String email;
 
-    @Schema(description = "Applicant's birth date")
+    @Schema
     private LocalDate birthdate;
 
-    @Schema(description = "Passport series")
+    @Schema
     private String passportSeries;
 
-    @Schema(description = "Passport number")
+    @Schema
     private String passportNumber;
 }

@@ -14,6 +14,7 @@ import ru.test.conveyor.dto.LoanOfferDTO;
 import ru.test.conveyor.dto.ScoringDataDTO;
 import ru.test.conveyor.service.CreditService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Tag(name = "conveyor")
@@ -30,13 +31,13 @@ public class CreditControllerImpl implements CreditController {
     @Operation
     public ResponseEntity<List<LoanOfferDTO>> getOffersForClient(LoanApplicationRequestDTO loanApplicationRequestDTO) {
         logger.info("getOffersForClient");
-        return null;
+        return ResponseEntity.ok(new ArrayList<>());
     }
 
     @Override
     @Operation
     public ResponseEntity<CreditDTO> getCalculation(ScoringDataDTO scoringDataDTO) {
         logger.info("getCalculation");
-        return null;
+        return ResponseEntity.ok(new CreditDTO());
     }
 }
