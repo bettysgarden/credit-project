@@ -20,6 +20,7 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 public class ScoringServiceTest {
@@ -62,8 +63,10 @@ public class ScoringServiceTest {
         ScoringDataDTO scoringDataDTO = getScoringDataDTO(BigDecimal.valueOf(100000), 12);
         scoringDataDTO.setBirthdate(LocalDate.now().minusYears(18));
 
+        ScoringServiceImpl scoringServiceSpy = spy(scoringService);
+
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            scoringService.getCreditCalculation(scoringDataDTO);
+            scoringServiceSpy.getCreditCalculation(scoringDataDTO);
         });
 
         assertTrue(exception.getMessage().contains("Client is declined based on initial checks"));

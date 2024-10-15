@@ -9,6 +9,5 @@ import ru.test.conveyor.entity.LoanOffer;
 public interface LoanOfferMapper {
     LoanOffer toEntity(LoanOfferDTO loanOfferDTO);
 
-    @Mapping(target = "rate", source = "rate")
     LoanOfferDTO toDTO(LoanOffer loanOffer);
 }

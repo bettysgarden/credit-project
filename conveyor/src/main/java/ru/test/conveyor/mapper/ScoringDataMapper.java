@@ -6,7 +6,7 @@ import ru.test.conveyor.entity.ScoringData;
 
 @Mapper
 public interface ScoringDataMapper {
-    ScoringData toEntity(ScoringDataDTO employment);
+    ScoringData toEntity(ScoringDataDTO scoringDataDTO);
 
-    ScoringDataDTO toDTO(ScoringData employment);
+    ScoringDataDTO toDTO(ScoringData scoringData);
 }

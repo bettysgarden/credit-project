@@ -6,7 +6,7 @@ import ru.test.conveyor.entity.Credit;
 
 @Mapper
 public interface CreditMapper {
-    CreditDTO toDto(Credit entity);
+    CreditDTO toDto(Credit credit);
 
     Credit toEntity(CreditDTO dto);
 }

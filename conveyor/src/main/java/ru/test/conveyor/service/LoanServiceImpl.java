@@ -2,6 +2,7 @@ package ru.test.conveyor.service;
 
 import com.example.credit.application.model.LoanApplicationRequestDTO;
 import com.example.credit.application.model.LoanOfferDTO;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,17 +21,13 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 @Service
+@RequiredArgsConstructor
 public class LoanServiceImpl implements LoanService {
     private static final Logger logger = LoggerFactory.getLogger(LoanServiceImpl.class);
     private static final BigDecimal BASE_RATE = new BigDecimal("15"); // Базовая ставка, 15%
 
     private final LoanOfferMapper loanOfferMapper;
     private final LoanApplicationMapper loanApplicationMapper;
-
-    public LoanServiceImpl(LoanOfferMapper loanOfferMapper, LoanApplicationMapper loanApplicationMapper) {
-        this.loanOfferMapper = loanOfferMapper;
-        this.loanApplicationMapper = loanApplicationMapper;
-    }
 
     @Override
     public List<LoanOfferDTO> getLoanOffers(LoanApplicationRequestDTO loanApplicationDTO) {

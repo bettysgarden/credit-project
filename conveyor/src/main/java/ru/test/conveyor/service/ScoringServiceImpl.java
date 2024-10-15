@@ -2,6 +2,7 @@ package ru.test.conveyor.service;
 
 import com.example.credit.application.model.CreditDTO;
 import com.example.credit.application.model.ScoringDataDTO;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.time.Period;
 import java.util.ArrayList;
 
 @Service
+@RequiredArgsConstructor
 public class ScoringServiceImpl implements ScoringService {
     private static final Logger logger = LoggerFactory.getLogger(ScoringServiceImpl.class);
     private static final BigDecimal BASE_RATE = new BigDecimal("10"); // базовая ставка
@@ -29,17 +31,11 @@ public class ScoringServiceImpl implements ScoringService {
     private final CreditMapper creditMapper;
     private final EmploymentMapper employmentMapper;
 
-    public ScoringServiceImpl(ScoringDataMapper scoringDataMapper, CreditMapper creditMapper, EmploymentMapper employmentMapper) {
-        this.scoringDataMapper = scoringDataMapper;
-        this.creditMapper = creditMapper;
-        this.employmentMapper = employmentMapper;
-    }
-
     @Override
     public CreditDTO getCreditCalculation(ScoringDataDTO scoringDataDTO) {
         logger.info("Получен запрос на расчёт кредита для данных: {}", scoringDataDTO);
 
-        // Преобразуем DTO в Entity
+        // TODO не работает маппер
         ScoringData scoringData = scoringDataMapper.toEntity(scoringDataDTO);
         logger.info("ScoringDataDTO преобразован в ScoringData: {}", scoringData);
 
