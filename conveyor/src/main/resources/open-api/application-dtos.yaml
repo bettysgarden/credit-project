@@ -1,0 +1,289 @@
+openapi: 3.0.0
+info:
+  title: Credit Application API
+  version: 1.0.0
+paths:
+  /conveyor/offers:
+    post:
+      summary: Calculate loan offers based on application data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanApplicationRequestDTO'
+      responses:
+        '200':
+          description: A list of loan offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanOfferDTO'
+
+  /conveyor/calculation:
+    post:
+      summary: Validate data, scoring, and full loan parameter calculation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScoringDataDTO'
+      responses:
+        '200':
+          description: Credit calculation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditDTO'
+
+components:
+  schemas:
+    LoanApplicationRequestDTO:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+        term:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        email:
+          type: string
+          format: email
+        birthdate:
+          type: string
+          format: date
+        passportSeries:
+          type: string
+        passportNumber:
+          type: string
+      required:
+        - amount
+        - term
+        - firstName
+        - lastName
+        - birthdate
+        - passportSeries
+        - passportNumber
+      example:
+        {
+          "amount": "100000.00",
+          "term": 12,
+          "firstName": "Ivan",
+          "lastName": "Petrov",
+          "middleName": "Ivanovich",
+          "email": "ivan.petrov@example.com",
+          "birthdate": "1985-04-12",
+          "passportSeries": "1234",
+          "passportNumber": "567890"
+        }
+
+    LoanOfferDTO:
+      type: object
+      properties:
+        applicationId:
+          type: integer
+        requestedAmount:
+          type: string
+          format: decimal
+        totalAmount:
+          type: string
+          format: decimal
+        term:
+          type: integer
+        monthlyPayment:
+          type: string
+          format: decimal
+        rate:
+          type: string
+          format: decimal
+        isInsuranceEnabled:
+          type: boolean
+        isSalaryClient:
+          type: boolean
+
+    ScoringDataDTO:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+        term:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        gender:
+          type: string
+          enum:
+            - MALE
+            - FEMALE
+            - NON_BINARY
+        birthdate:
+          type: string
+          format: date
+        passportSeries:
+          type: string
+        passportNumber:
+          type: string
+        passportIssueDate:
+          type: string
+          format: date
+        passportIssueBranch:
+          type: string
+        maritalStatus:
+          type: string
+          enum:
+            - MARRIED
+            - SINGLE
+            - DIVORCED
+        dependentAmount:
+          type: integer
+        employment:
+          $ref: '#/components/schemas/EmploymentDTO'
+        account:
+          type: string
+        isInsuranceEnabled:
+          type: boolean
+        isSalaryClient:
+          type: boolean
+      example:
+        {
+          "amount": "100000.00",
+          "term": 12,
+          "firstName": "Ivan",
+          "lastName": "Petrov",
+          "middleName": "Ivanovich",
+          "gender": "MALE",
+          "birthdate": "1985-04-12",
+          "passportSeries": "1234",
+          "passportNumber": "567890",
+          "passportIssueDate": "2010-05-15",
+          "passportIssueBranch": "Branch #1",
+          "maritalStatus": "MARRIED",
+          "dependentAmount": 2,
+          "employment": {
+            "employmentStatus": "EMPLOYED",
+            "employerINN": "1234567890",
+            "salary": "50000.00",
+            "position": "MANAGER",
+            "workExperienceTotal": 10,
+            "workExperienceCurrent": 5
+          },
+          "account": "1234567890123456",
+          "isInsuranceEnabled": true,
+          "isSalaryClient": false
+        }
+
+    CreditDTO:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+        term:
+          type: integer
+        monthlyPayment:
+          type: string
+          format: decimal
+        rate:
+          type: string
+          format: decimal
+        psk:
+          type: string
+          format: decimal
+        isInsuranceEnabled:
+          type: boolean
+        isSalaryClient:
+          type: boolean
+        paymentSchedule:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentScheduleElement'
+      example:
+        {
+          "amount": "100000.00",
+          "term": 12,
+          "monthlyPayment": "8500.00",
+          "rate": "10.00",
+          "psk": "12.00",
+          "isInsuranceEnabled": true,
+          "isSalaryClient": false,
+          "paymentSchedule": [
+            {
+              "number": 1,
+              "date": "2024-01-01",
+              "totalPayment": "8500.00",
+              "interestPayment": "1000.00",
+              "debtPayment": "7500.00",
+              "remainingDebt": "92500.00"
+            },
+            {
+              "number": 2,
+              "date": "2024-02-01",
+              "totalPayment": "8500.00",
+              "interestPayment": "925.00",
+              "debtPayment": "7575.00",
+              "remainingDebt": "84925.00"
+            }
+          ]
+        }
+
+    EmploymentDTO:
+      type: object
+      properties:
+        employmentStatus:
+          type: string
+          enum:
+            - EMPLOYED
+            - SELF_EMPLOYED
+            - UNEMPLOYED
+            - RETIRED
+            - BUSINESS_OWNER
+        employerINN:
+          type: string
+        salary:
+          type: string
+          format: decimal
+        position:
+          type: string
+          enum:
+            - MANAGER
+            - TOP_MANAGER
+            - WORKER
+        workExperienceTotal:
+          type: integer
+        workExperienceCurrent:
+          type: integer
+
+    PaymentScheduleElement:
+      type: object
+      properties:
+        number:
+          type: integer
+        date:
+          type: string
+          format: date
+        totalPayment:
+          type: string
+          format: decimal
+        interestPayment:
+          type: string
+          format: decimal
+        debtPayment:
+          type: string
+          format: decimal
+        remainingDebt:
+          type: string
+          format: decimal

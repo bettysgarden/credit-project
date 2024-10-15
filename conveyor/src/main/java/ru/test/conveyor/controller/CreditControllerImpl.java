@@ -1,18 +1,21 @@
 package ru.test.conveyor.controller;
 
+import com.example.credit.application.model.CreditDTO;
+import com.example.credit.application.model.LoanApplicationRequestDTO;
+import com.example.credit.application.model.LoanOfferDTO;
+import com.example.credit.application.model.ScoringDataDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.test.conveyor.dto.CreditDTO;
-import ru.test.conveyor.dto.LoanApplicationRequestDTO;
-import ru.test.conveyor.dto.LoanOfferDTO;
-import ru.test.conveyor.dto.ScoringDataDTO;
-import ru.test.conveyor.service.CreditService;
+import ru.test.conveyor.service.LoanService;
+import ru.test.conveyor.service.ScoringService;
 
 import java.util.List;
 
@@ -23,20 +26,29 @@ public class CreditControllerImpl implements CreditController {
 
     private final Logger logger = LoggerFactory.getLogger(CreditControllerImpl.class);
 
-    @Autowired
-    private CreditService creditService;
+    private final LoanService loanService;
+    private final ScoringService scoringService;
 
-    @Override
-    @Operation
-    public ResponseEntity<List<LoanOfferDTO>> getOffersForClient(LoanApplicationRequestDTO loanApplicationRequestDTO) {
-        logger.info("getOffersForClient");
-        return null;
+    public CreditControllerImpl(LoanService loanService, ScoringService scoringService) {
+        this.loanService = loanService;
+        this.scoringService = scoringService;
     }
 
     @Override
     @Operation
-    public ResponseEntity<CreditDTO> getCalculation(ScoringDataDTO scoringDataDTO) {
+    @PostMapping("/calculation")
+    public ResponseEntity<List<LoanOfferDTO>> getOffersForClient(@RequestBody @Validated LoanApplicationRequestDTO loanApplicationRequestDTO) {
+        logger.info("getOffersForClient");
+        List<LoanOfferDTO> loanOffers = loanService.getLoanOffers(loanApplicationRequestDTO);
+        return ResponseEntity.ok(loanOffers);
+    }
+
+    @Override
+    @Operation
+    @PostMapping("/offers")
+    public ResponseEntity<CreditDTO> getCalculation(@RequestBody @Validated ScoringDataDTO scoringDataDTO) {
         logger.info("getCalculation");
-        return null;
+        CreditDTO creditCalculation = scoringService.getCreditCalculation(scoringDataDTO);
+        return ResponseEntity.ok(creditCalculation);
     }
 }
