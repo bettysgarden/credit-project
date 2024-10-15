@@ -1,0 +1,196 @@
+package ru.test.conveyor.service;
+
+import com.example.credit.application.model.CreditDTO;
+import com.example.credit.application.model.ScoringDataDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import ru.test.conveyor.entity.Credit;
+import ru.test.conveyor.entity.Employment;
+import ru.test.conveyor.entity.ScoringData;
+import ru.test.conveyor.enums.Gender;
+import ru.test.conveyor.enums.MaritalStatus;
+import ru.test.conveyor.mapper.CreditMapper;
+import ru.test.conveyor.mapper.EmploymentMapper;
+import ru.test.conveyor.mapper.ScoringDataMapper;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.ArrayList;
+
+@Service
+public class ScoringServiceImpl implements ScoringService {
+    private static final Logger logger = LoggerFactory.getLogger(ScoringServiceImpl.class);
+    private static final BigDecimal BASE_RATE = new BigDecimal("10"); // базовая ставка
+
+    private final ScoringDataMapper scoringDataMapper;
+    private final CreditMapper creditMapper;
+    private final EmploymentMapper employmentMapper;
+
+    public ScoringServiceImpl(ScoringDataMapper scoringDataMapper, CreditMapper creditMapper, EmploymentMapper employmentMapper) {
+        this.scoringDataMapper = scoringDataMapper;
+        this.creditMapper = creditMapper;
+        this.employmentMapper = employmentMapper;
+    }
+
+    @Override
+    public CreditDTO getCreditCalculation(ScoringDataDTO scoringDataDTO) {
+        logger.info("Получен запрос на расчёт кредита для данных: {}", scoringDataDTO);
+
+        // Преобразуем DTO в Entity
+        ScoringData scoringData = scoringDataMapper.toEntity(scoringDataDTO);
+        logger.info("ScoringDataDTO преобразован в ScoringData: {}", scoringData);
+
+        // Выполняем скоринг
+        return scoring(scoringData);
+    }
+
+    public CreditDTO scoring(ScoringData scoringData) {
+        BigDecimal rate = BASE_RATE;
+        logger.info("Начальная ставка: {}", rate);
+
+        // Проверка на отказные случаи
+        if (isDeclined(scoringData)) {
+            logger.warn("Заявка отклонена на основе скоринговых проверок для данных: {}", scoringData);
+            throw new IllegalArgumentException("Client is declined based on initial checks");
+        }
+
+        // Модификация ставки по рабочему статусу
+        rate = adjustRateForEmployment(scoringData.getEmployment(), rate);
+        logger.info("Ставка после модификации по рабочему статусу: {}", rate);
+
+        // Модификация ставки по семейному положению
+        rate = adjustRateForMaritalStatus(scoringData.getMaritalStatus(), rate);
+        logger.info("Ставка после модификации по семейному положению: {}", rate);
+
+        // Модификация ставки по полу и возрасту
+        rate = adjustRateForGenderAndAge(scoringData.getGender(), scoringData.getBirthDate(), rate);
+        logger.info("Ставка после модификации по полу и возрасту: {}", rate);
+
+        // Модификация ставки по количеству иждивенцев
+        if (scoringData.getDependentAmount() != null && scoringData.getDependentAmount() > 1) {
+            rate = rate.add(BigDecimal.ONE);
+            logger.info("Ставка увеличена на 1% из-за наличия более 1 иждивенца. Итоговая ставка: {}", rate);
+        }
+
+        // Расчет ежемесячного платежа
+        BigDecimal monthlyPayment = calculateMonthlyPayment(scoringData.getAmount(), rate, scoringData.getTerm());
+        logger.info("Рассчитан ежемесячный платеж: {}", monthlyPayment);
+
+        // Расчет полной стоимости кредита (ПСК)
+        BigDecimal psk = calculatePsk(monthlyPayment, scoringData.getTerm());
+        logger.info("Рассчитан ПСК: {}", psk);
+
+        // Возврат итогового результата
+        Credit credit = new Credit(
+                scoringData.getAmount(),
+                scoringData.getTerm(),
+                monthlyPayment,
+                rate,
+                psk,
+                scoringData.getIsInsuranceEnabled(),
+                scoringData.getIsSalaryClient(),
+                new ArrayList<>()
+        );
+        logger.info("Итоговый расчёт кредита: {}", credit);
+
+        return creditMapper.toDto(credit);
+    }
+
+    private boolean isDeclined(ScoringData scoringData) {
+        // Проверка возраста
+        int age = Period.between(scoringData.getBirthDate(), LocalDate.now()).getYears();
+        if (age < 20 || age > 60) {
+            logger.warn("Заявка отклонена из-за возраста: {}", age);
+            return true;
+        }
+
+        // Проверка стажа работы
+        Employment employment = scoringData.getEmployment();
+        if (employment.getWorkExperienceTotal() < 12 || employment.getWorkExperienceCurrent() < 3) {
+            logger.warn("Заявка отклонена из-за недостаточного стажа работы: {} месяцев (общий) и {} месяцев (текущий)",
+                    employment.getWorkExperienceTotal(), employment.getWorkExperienceCurrent());
+            return true;
+        }
+
+        // Проверка суммы займа относительно зарплаты
+        if (scoringData.getAmount().compareTo(employment.getSalary().multiply(BigDecimal.valueOf(20))) > 0) {
+            logger.warn("Заявка отклонена из-за слишком высокой суммы займа по сравнению с зарплатой");
+            return true;
+        }
+
+        return false;
+    }
+
+    private BigDecimal adjustRateForEmployment(Employment employment, BigDecimal rate) {
+        switch (employment.getEmploymentStatus()) {
+            case UNEMPLOYED:
+                logger.warn("Клиент безработный, отклонение заявки");
+                throw new IllegalArgumentException("Client is unemployed, scoring is declined");
+            case SELF_EMPLOYED:
+                rate = rate.add(BigDecimal.ONE);
+                logger.info("Ставка увеличена на 1% для самозанятого клиента");
+                break;
+            case BUSINESS_OWNER:
+                rate = rate.add(BigDecimal.valueOf(3));
+                logger.info("Ставка увеличена на 3% для владельца бизнеса");
+                break;
+            default:
+                break;
+        }
+        return rate;
+    }
+
+    private BigDecimal adjustRateForMaritalStatus(MaritalStatus maritalStatus, BigDecimal rate) {
+        switch (maritalStatus) {
+            case MARRIED:
+                rate = rate.subtract(BigDecimal.valueOf(3));
+                logger.info("Ставка уменьшена на 3% для женатого клиента");
+                break;
+            case DIVORCED:
+                rate = rate.add(BigDecimal.ONE);
+                logger.info("Ставка увеличена на 1% для разведённого клиента");
+                break;
+            default:
+                break;
+        }
+        return rate;
+    }
+
+    private BigDecimal adjustRateForGenderAndAge(Gender gender, LocalDate birthDate, BigDecimal rate) {
+        int age = Period.between(birthDate, LocalDate.now()).getYears();
+        switch (gender) {
+            case FEMALE:
+                if (age >= 35 && age <= 60) {
+                    rate = rate.subtract(BigDecimal.valueOf(3));
+                    logger.info("Ставка уменьшена на 3% для женщины в возрасте 35-60 лет");
+                }
+                break;
+            case MALE:
+                if (age >= 30 && age <= 55) {
+                    rate = rate.subtract(BigDecimal.valueOf(3));
+                    logger.info("Ставка уменьшена на 3% для мужчины в возрасте 30-55 лет");
+                }
+                break;
+            case NON_BINARY:
+                rate = rate.add(BigDecimal.valueOf(3));
+                logger.info("Ставка увеличена на 3% для клиента с полом 'не бинарный'");
+                break;
+            default:
+                break;
+        }
+        return rate;
+    }
+
+    private BigDecimal calculateMonthlyPayment(BigDecimal amount, BigDecimal rate, Integer term) {
+        BigDecimal monthlyRate = rate.divide(BigDecimal.valueOf(12), RoundingMode.HALF_UP);
+        return amount.multiply(monthlyRate).divide(BigDecimal.ONE.subtract(
+                BigDecimal.ONE.divide((BigDecimal.ONE.add(monthlyRate)).pow(term), RoundingMode.HALF_UP)), RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal calculatePsk(BigDecimal monthlyPayment, Integer term) {
+        return monthlyPayment.multiply(BigDecimal.valueOf(term));
+    }
+}
