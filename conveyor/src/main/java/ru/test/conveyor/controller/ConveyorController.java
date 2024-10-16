@@ -38,14 +38,10 @@ public class ConveyorController implements ConveyorApi {
     @PostMapping("/offers")
     public ResponseEntity<List<LoanOfferDTO>> conveyorOffersPost(@RequestBody @Validated LoanApplicationRequestDTO loanApplicationRequestDTO) {
         logger.info("Получен запрос на расчет кредитных предложений. Параметры: {}", loanApplicationRequestDTO);
-        try {
-            List<LoanOfferDTO> loanOffers = loanService.getLoanOffers(loanApplicationRequestDTO);
-            logger.info("Сгенерированы {} кредитных предложений для клиента.", loanOffers.size());
-            return ResponseEntity.ok(loanOffers);
-        } catch (Exception e) {
-            logger.error("Ошибка при расчете кредитных предложений: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        List<LoanOfferDTO> loanOffers = loanService.getLoanOffers(loanApplicationRequestDTO);
+        logger.info("Сгенерированы {} кредитных предложений для клиента.", loanOffers.size());
+        return new ResponseEntity<>(loanOffers, HttpStatus.OK);
+
     }
 
     @Override

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.test.conveyor.entity.LoanApplication;
 import ru.test.conveyor.entity.LoanOffer;
+import ru.test.conveyor.exception.InvalidLoanApplicationException;
 import ru.test.conveyor.mapper.LoanApplicationMapper;
 import ru.test.conveyor.mapper.LoanOfferMapper;
 import ru.test.conveyor.service.LoanServiceImpl;
@@ -46,6 +47,7 @@ public class LoanServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        loanService = new LoanServiceImpl(loanOfferMapper, loanApplicationMapper);
 
         validLoanApplicationDTO = new LoanApplicationRequestDTO();
         validLoanApplicationDTO.setFirstName("John");
@@ -81,7 +83,6 @@ public class LoanServiceTest {
 
     @Test
     public void testGetLoanOffers_Success() {
-        loanService = new LoanServiceImpl(loanOfferMapper, loanApplicationMapper);
         LoanServiceImpl loanServiceSpy = spy(loanService);
 
         doReturn(true).when(loanServiceSpy).prescoring(validLoanApplication);
@@ -99,22 +100,15 @@ public class LoanServiceTest {
         LoanOfferDTO secondOffer = offers.get(1);
         assertNotNull(secondOffer, "Второе предложение не должно быть null");
 
-        doReturn(false).when(loanServiceSpy).prescoring(validLoanApplication);
-        List<LoanOfferDTO> emptyOffers = loanServiceSpy.getLoanOffers(validLoanApplicationDTO);
-        assertTrue(emptyOffers.isEmpty(), "Если прескоринг не пройден, предложения не должны генерироваться");
     }
-
 
     @Test
     public void testGetLoanOffers_PrescoringFailed() {
-        loanService = new LoanServiceImpl(loanOfferMapper, loanApplicationMapper);
         LoanServiceImpl loanServiceSpy = spy(loanService);
         doReturn(false).when(loanServiceSpy).prescoring(any(LoanApplication.class));
 
-        List<LoanOfferDTO> offers = loanServiceSpy.getLoanOffers(validLoanApplicationDTO);
-
-        assertNotNull(offers);
-        assertEquals(0, offers.size(), "Предложения не должны генерироваться, если прескоринг не пройден");
+        validLoanApplicationDTO.setFirstName("11111");
+        assertThrows(InvalidLoanApplicationException.class, () -> loanServiceSpy.getLoanOffers(validLoanApplicationDTO));
     }
 
     @Test
@@ -123,9 +117,10 @@ public class LoanServiceTest {
         assertTrue(result, "Прескоринг должен быть успешным для валидации данных");
     }
 
+
     @Test
     public void testPrescoring_InvalidName() {
-        validLoanApplication.setFirstName("J1");
+        validLoanApplication.setLastName("J1");
         boolean result = loanService.prescoring(validLoanApplication);
         assertFalse(result, "Прескоринг должен быть неуспешным при некорректном имени");
     }

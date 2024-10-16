@@ -12,6 +12,9 @@ import ru.test.conveyor.entity.PaymentScheduleElement;
 import ru.test.conveyor.entity.ScoringData;
 import ru.test.conveyor.enums.Gender;
 import ru.test.conveyor.enums.MaritalStatus;
+import ru.test.conveyor.exception.CreditCalculationException;
+import ru.test.conveyor.exception.CreditDeclinedException;
+import ru.test.conveyor.exception.InvalidScoringDataException;
 import ru.test.conveyor.mapper.CreditMapper;
 import ru.test.conveyor.mapper.ScoringDataMapper;
 
@@ -35,107 +38,107 @@ public class ScoringServiceImpl implements ScoringService {
         logger.info("Получен запрос на расчёт кредита для данных: {}", scoringDataDTO);
 
         ScoringData scoringData = scoringDataMapper.toEntity(scoringDataDTO);
-        logger.info("ScoringDataDTO преобразован в ScoringData: {}", scoringData);
 
         return scoring(scoringData);
     }
 
     public CreditDTO scoring(ScoringData scoringData) {
         BigDecimal rate = BASE_RATE;
-        logger.info("Начальная ставка: {}", rate);
 
-        if (isDeclined(scoringData)) {
-            logger.warn("Заявка отклонена на основе скоринговых проверок для данных: {}", scoringData);
-            throw new IllegalArgumentException("Client is declined based on initial checks");
+        validateScoringData(scoringData);
+
+        try {
+            rate = adjustRateForEmployment(scoringData.getEmployment(), rate);
+            rate = adjustRateForMaritalStatus(scoringData.getMaritalStatus(), rate);
+            rate = adjustRateForGenderAndAge(scoringData.getGender(), scoringData.getBirthdate(), rate);
+
+            if (scoringData.getDependentAmount() != null && scoringData.getDependentAmount() > 1) {
+                rate = rate.add(BigDecimal.ONE);
+            }
+
+            BigDecimal monthlyPayment = calculateMonthlyPayment(scoringData.getAmount(), rate, scoringData.getTerm());
+            BigDecimal psk = calculatePsk(monthlyPayment, scoringData.getTerm());
+            ArrayList<PaymentScheduleElement> paymentSchedule = calculatePaymentSchedule(monthlyPayment, scoringData.getTerm(), scoringData.getAmount(), rate);
+
+
+            Credit credit = new Credit(
+                    scoringData.getAmount(),
+                    scoringData.getTerm(),
+                    monthlyPayment,
+                    rate,
+                    psk,
+                    scoringData.getIsInsuranceEnabled(),
+                    scoringData.getIsSalaryClient(),
+                    paymentSchedule
+            );
+            logger.info("Итоговый расчёт кредита: {}", credit);
+
+            return creditMapper.toDto(credit);
+        } catch (InvalidScoringDataException ex) {
+            logger.error("Ошибка валидации скоринговых данных: {}", ex.getMessage());
+            throw ex;
+        } catch (CreditDeclinedException ex) {
+            logger.error("Ошибка расчёта кредита: ", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Ошибка расчёта кредита: ", ex);
+            throw new CreditCalculationException("Внутренняя ошибка расчёта кредита. Попробуйте позже.", ex);
         }
-
-        rate = adjustRateForEmployment(scoringData.getEmployment(), rate);
-        logger.info("Ставка после модификации по рабочему статусу: {}", rate);
-
-        rate = adjustRateForMaritalStatus(scoringData.getMaritalStatus(), rate);
-        logger.info("Ставка после модификации по семейному положению: {}", rate);
-
-        rate = adjustRateForGenderAndAge(scoringData.getGender(), scoringData.getBirthdate(), rate);
-        logger.info("Ставка после модификации по полу и возрасту: {}", rate);
-
-        if (scoringData.getDependentAmount() != null && scoringData.getDependentAmount() > 1) {
-            rate = rate.add(BigDecimal.ONE);
-            logger.info("Ставка увеличена на 1% из-за наличия более 1 иждивенца. Итоговая ставка: {}", rate);
-        }
-
-
-        BigDecimal monthlyPayment = calculateMonthlyPayment(scoringData.getAmount(), rate, scoringData.getTerm());
-        logger.info("Рассчитан ежемесячный платеж: {}", monthlyPayment);
-
-        BigDecimal psk = calculatePsk(monthlyPayment, scoringData.getTerm());
-        logger.info("Рассчитан ПСК: {}", psk);
-
-        ArrayList<PaymentScheduleElement> paymentSchedule = calculatePaymentSchedule(monthlyPayment, scoringData.getTerm(), scoringData.getAmount(), rate);
-
-
-        Credit credit = new Credit(
-                scoringData.getAmount(),
-                scoringData.getTerm(),
-                monthlyPayment,
-                rate,
-                psk,
-                scoringData.getIsInsuranceEnabled(),
-                scoringData.getIsSalaryClient(),
-                paymentSchedule
-        );
-        logger.info("Итоговый расчёт кредита: {}", credit);
-
-        return creditMapper.toDto(credit);
     }
 
-    private boolean isDeclined(ScoringData scoringData) {
+    private void validateScoringData(ScoringData scoringData) {
         if (scoringData.getBirthdate() == null) {
-            logger.warn("Заявка отклонена: не указана дата рождения.");
-            return true;
+            throw new InvalidScoringDataException("Дата рождения не указана.");
         }
 
         int age = Period.between(scoringData.getBirthdate(), LocalDate.now()).getYears();
         if (age < 20 || age > 60) {
-            logger.warn("Заявка отклонена из-за возраста: {}", age);
-            return true;
+            throw new CreditDeclinedException("Клиент не прошёл по возрасту.");
         }
 
         Employment employment = scoringData.getEmployment();
         if (employment == null) {
-            logger.warn("Заявка отклонена: не указаны данные о занятости.");
-            return true;
+            throw new InvalidScoringDataException("Данные о занятости не указаны.");
         }
 
         if (employment.getWorkExperienceTotal() == null || employment.getWorkExperienceCurrent() == null) {
-            logger.warn("Заявка отклонена: не указаны данные о стаже работы.");
-            return true;
+            throw new InvalidScoringDataException("Недостаточные данные о стаже работы.");
         }
 
         if (employment.getWorkExperienceTotal() < 12 || employment.getWorkExperienceCurrent() < 3) {
-            logger.warn("Заявка отклонена из-за недостаточного стажа работы: {} месяцев (общий) и {} месяцев (текущий)",
-                    employment.getWorkExperienceTotal(), employment.getWorkExperienceCurrent());
-            return true;
+            throw new CreditDeclinedException("Недостаточный стаж работы: общий стаж должен быть минимум 12 месяцев, а текущий — минимум 3 месяца.");
         }
 
         if (scoringData.getAmount() == null || employment.getSalary() == null) {
-            logger.warn("Заявка отклонена: не указаны сумма займа или зарплата.");
-            return true;
+            throw new InvalidScoringDataException("Не указаны сумма кредита или зарплата.");
         }
 
         if (scoringData.getAmount().compareTo(employment.getSalary().multiply(BigDecimal.valueOf(20))) > 0) {
-            logger.warn("Заявка отклонена из-за слишком высокой суммы займа по сравнению с зарплатой");
-            return true;
+            throw new CreditDeclinedException("Сумма кредита превышает допустимое соотношение 20-кратного размера зарплаты.");
         }
 
-        return false;
-    }
+        if (scoringData.getTerm() == null || scoringData.getTerm() < 6 || scoringData.getTerm() > 60) {
+            throw new InvalidScoringDataException("Неверно указан срок кредита. Допустимый срок — от 6 до 60 месяцев.");
+        }
 
+        if (scoringData.getDependentAmount() != null && scoringData.getDependentAmount() < 0) {
+            throw new InvalidScoringDataException("Некорректное количество иждивенцев: оно не может быть отрицательным.");
+        }
+
+        if (scoringData.getIsInsuranceEnabled() == null) {
+            throw new InvalidScoringDataException("Не указано, оформлена ли страховка.");
+        }
+
+        if (scoringData.getIsSalaryClient() == null) {
+            throw new InvalidScoringDataException("Не указано, является ли клиент зарплатным клиентом.");
+        }
+    }
 
     private BigDecimal adjustRateForEmployment(Employment employment, BigDecimal rate) {
         switch (employment.getEmploymentStatus()) {
             case UNEMPLOYED:
                 logger.warn("Клиент безработный, отклонение заявки");
-                throw new IllegalArgumentException("Client is unemployed, scoring is declined");
+                throw new CreditDeclinedException("Клиенту отказано в кредите на основании скоринговых проверок.");
             case SELF_EMPLOYED:
                 rate = rate.add(BigDecimal.ONE);
                 logger.info("Ставка увеличена на 1% для самозанятого клиента");

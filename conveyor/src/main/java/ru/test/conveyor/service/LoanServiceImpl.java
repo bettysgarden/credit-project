@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import ru.test.conveyor.entity.LoanApplication;
 import ru.test.conveyor.entity.LoanOffer;
+import ru.test.conveyor.exception.InvalidLoanApplicationException;
+import ru.test.conveyor.exception.LoanCalculationException;
 import ru.test.conveyor.mapper.LoanApplicationMapper;
 import ru.test.conveyor.mapper.LoanOfferMapper;
 
@@ -35,60 +37,71 @@ public class LoanServiceImpl implements LoanService {
 
         LoanApplication loanApplication = loanApplicationMapper.toEntity(loanApplicationDTO);
 
-        List<LoanOfferDTO> offers = new ArrayList<>();
-
         if (!prescoring(loanApplication)) {
             logger.warn("Предварительная проверка не пройдена для заявки: {}", loanApplication);
-            return offers;
+            throw new InvalidLoanApplicationException("Предварительная проверка не пройдена. Проверьте введенные данные.");
         }
+
 
         logger.info("Предварительная проверка пройдена успешно, формируем кредитные предложения");
 
-        offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, true, true)));
-        offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, true, false)));
-        offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, false, true)));
-        offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, false, false)));
+        try {
+            List<LoanOfferDTO> offers = new ArrayList<>();
+            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, true, true)));
+            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, true, false)));
+            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, false, true)));
+            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, false, false)));
 
-        offers.sort(Comparator.comparing(LoanOfferDTO::getRate));
-        logger.info("Сформировано {} кредитных предложений для заявки: {}", offers.size(), loanApplication);
-        return offers;
+            offers.sort(Comparator.comparing(LoanOfferDTO::getRate));
+            logger.info("Сформировано {} кредитных предложений для заявки: {}", offers.size(), loanApplication);
+            return offers;
+        } catch (Exception e) {
+            logger.error("Ошибка при формировании кредитных предложений: ", e);
+            throw new LoanCalculationException("Ошибка при расчете предложений.");
+        }
     }
 
     private LoanOffer getLoanOffer(LoanApplication application, Boolean isInsuranceEnabled, Boolean isSalaryClient) {
-        LoanOffer loanOffer = new LoanOffer();
-        BigDecimal amount = application.getAmount();
-        BigDecimal rate = BASE_RATE;
+        try {
+            LoanOffer loanOffer = new LoanOffer();
+            BigDecimal amount = application.getAmount();
+            BigDecimal rate = BASE_RATE;
 
-        logger.info("Начало расчета кредитного предложения для страховки: {}, зарплатный клиент: {}", isInsuranceEnabled, isSalaryClient);
+            logger.info("Начало расчета кредитного предложения для страховки: {}, зарплатный клиент: {}", isInsuranceEnabled, isSalaryClient);
 
-        if (isInsuranceEnabled && isSalaryClient) {
-            rate = rate.subtract(BigDecimal.valueOf(6));
-            amount = amount.add(calculateInsuranceCost(application));
-            logger.info("Ставка снижена на 6%, сумма увеличена на стоимость страховки");
-        } else if (isInsuranceEnabled) {
-            rate = rate.subtract(BigDecimal.valueOf(5));
-            amount = amount.add(calculateInsuranceCost(application));
-            logger.info("Ставка снижена на 5%, сумма увеличена на стоимость страховки");
-        } else if (isSalaryClient) {
-            rate = rate.subtract(BigDecimal.valueOf(1));
-            logger.info("Ставка снижена на 1% за участие в программе зарплатного клиента");
+            if (isInsuranceEnabled && isSalaryClient) {
+                rate = rate.subtract(BigDecimal.valueOf(6));
+                amount = amount.add(calculateInsuranceCost(application));
+                logger.info("Ставка снижена на 6%, сумма увеличена на стоимость страховки");
+            } else if (isInsuranceEnabled) {
+                rate = rate.subtract(BigDecimal.valueOf(5));
+                amount = amount.add(calculateInsuranceCost(application));
+                logger.info("Ставка снижена на 5%, сумма увеличена на стоимость страховки");
+            } else if (isSalaryClient) {
+                rate = rate.subtract(BigDecimal.valueOf(1));
+                logger.info("Ставка снижена на 1% за участие в программе зарплатного клиента");
+            }
+
+            BigDecimal monthlyPayment = calculateMonthlyPayment(amount, rate, application.getTerm());
+            logger.info("Расчет аннуитетного платежа завершен, ежемесячный платеж: {}", monthlyPayment);
+
+            loanOffer.setApplicationId(null); // TODO как формируется applicationId
+            loanOffer.setTotalAmount(amount);
+            loanOffer.setTerm(application.getTerm());
+            loanOffer.setRate(rate);
+            loanOffer.setMonthlyPayment(monthlyPayment);
+            loanOffer.setIsInsuranceEnabled(isInsuranceEnabled);
+            loanOffer.setIsSalaryClient(isSalaryClient);
+            loanOffer.setRequestedAmount(application.getAmount());
+
+            logger.info("Кредитное предложение сформировано: {}", loanOffer);
+            return loanOffer;
+        } catch (Exception e) {
+            logger.error("Ошибка при расчете кредитного предложения: ", e);
+            throw new LoanCalculationException("Ошибка расчета кредитного предложения.");
         }
-
-        BigDecimal monthlyPayment = calculateMonthlyPayment(amount, rate, application.getTerm());
-        logger.info("Расчет аннуитетного платежа завершен, ежемесячный платеж: {}", monthlyPayment);
-
-        loanOffer.setApplicationId(null); // TODO как формируется applicationId
-        loanOffer.setTotalAmount(amount);
-        loanOffer.setTerm(application.getTerm());
-        loanOffer.setRate(rate);
-        loanOffer.setMonthlyPayment(monthlyPayment);
-        loanOffer.setIsInsuranceEnabled(isInsuranceEnabled);
-        loanOffer.setIsSalaryClient(isSalaryClient);
-        loanOffer.setRequestedAmount(application.getAmount());
-
-        logger.info("Кредитное предложение сформировано: {}", loanOffer);
-        return loanOffer;
     }
+
 
     private BigDecimal calculateInsuranceCost(LoanApplication application) {
         // 10000 + (запрашиваемая_сумма/1000) * (количество_платежных_периодов)
@@ -152,6 +165,8 @@ public class LoanServiceImpl implements LoanService {
         logger.info("Предварительная проверка пройдена успешно для заявки: {}", loanApplication);
         return true;
     }
+
+
 
     private boolean isValidName(String name) {
         return name == null || !name.matches("[A-Za-z]{2,30}");
