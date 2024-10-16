@@ -1,5 +1,6 @@
 package ru.test.conveyor.controller;
 
+import com.example.credit.application.api.ConveyorApi;
 import com.example.credit.application.model.CreditDTO;
 import com.example.credit.application.model.LoanApplicationRequestDTO;
 import com.example.credit.application.model.LoanOfferDTO;
@@ -25,17 +26,17 @@ import java.util.List;
 @RestController
 @RequestMapping("/conveyor")
 @RequiredArgsConstructor
-public class CreditControllerImpl implements CreditController {
+public class ConveyorController implements ConveyorApi {
 
-    private final Logger logger = LoggerFactory.getLogger(CreditControllerImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(ConveyorController.class);
 
     private final LoanService loanService;
     private final ScoringService scoringService;
 
     @Override
     @Operation
-    @PostMapping("/calculation")
-    public ResponseEntity<List<LoanOfferDTO>> getOffersForClient(@RequestBody @Validated LoanApplicationRequestDTO loanApplicationRequestDTO) {
+    @PostMapping("/offers")
+    public ResponseEntity<List<LoanOfferDTO>> conveyorOffersPost(@RequestBody @Validated LoanApplicationRequestDTO loanApplicationRequestDTO) {
         logger.info("Получен запрос на расчет кредитных предложений. Параметры: {}", loanApplicationRequestDTO);
         try {
             List<LoanOfferDTO> loanOffers = loanService.getLoanOffers(loanApplicationRequestDTO);
@@ -49,8 +50,8 @@ public class CreditControllerImpl implements CreditController {
 
     @Override
     @Operation
-    @PostMapping("/offers")
-    public ResponseEntity<CreditDTO> getCalculation(@RequestBody @Validated ScoringDataDTO scoringDataDTO) {
+    @PostMapping("/calculation")
+    public ResponseEntity<CreditDTO> conveyorCalculationPost(@RequestBody @Validated ScoringDataDTO scoringDataDTO) {
         logger.info("Получен запрос на расчет кредита. Параметры: {}", scoringDataDTO);
         try {
             CreditDTO creditCalculation = scoringService.getCreditCalculation(scoringDataDTO);
