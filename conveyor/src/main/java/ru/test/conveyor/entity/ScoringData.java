@@ -18,7 +18,7 @@ public class ScoringData {
     private String firstName;
     private String lastName;
     private Gender gender;
-    private LocalDate birthDate;
+    private LocalDate birthdate;
     private String passportSeries;
     private String passportNumber;
     private LocalDate passportIssueDate;

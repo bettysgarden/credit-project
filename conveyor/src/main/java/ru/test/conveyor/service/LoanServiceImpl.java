@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class LoanServiceImpl implements LoanService {
     private static final Logger logger = LoggerFactory.getLogger(LoanServiceImpl.class);
-    private static final BigDecimal BASE_RATE = new BigDecimal("15"); // Базовая ставка, 15%
+    private static final BigDecimal BASE_RATE = new BigDecimal("25");
 
     private final LoanOfferMapper loanOfferMapper;
     private final LoanApplicationMapper loanApplicationMapper;
@@ -44,7 +44,6 @@ public class LoanServiceImpl implements LoanService {
 
         logger.info("Предварительная проверка пройдена успешно, формируем кредитные предложения");
 
-        // TODO все предложения пустые -- метод toDTO не работает
         offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, true, true)));
         offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, true, false)));
         offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, false, true)));
@@ -63,15 +62,15 @@ public class LoanServiceImpl implements LoanService {
         logger.info("Начало расчета кредитного предложения для страховки: {}, зарплатный клиент: {}", isInsuranceEnabled, isSalaryClient);
 
         if (isInsuranceEnabled && isSalaryClient) {
-            rate = rate.subtract(BigDecimal.valueOf(6)); // -6% за страховку и зарплатного клиента
-            amount = amount.add(calculateInsuranceCost(application)); // Увеличиваем сумму на стоимость страховки
+            rate = rate.subtract(BigDecimal.valueOf(6));
+            amount = amount.add(calculateInsuranceCost(application));
             logger.info("Ставка снижена на 6%, сумма увеличена на стоимость страховки");
         } else if (isInsuranceEnabled) {
-            rate = rate.subtract(BigDecimal.valueOf(5)); // -5% за страховку
-            amount = amount.add(calculateInsuranceCost(application)); // Увеличиваем сумму на стоимость страховки
+            rate = rate.subtract(BigDecimal.valueOf(5));
+            amount = amount.add(calculateInsuranceCost(application));
             logger.info("Ставка снижена на 5%, сумма увеличена на стоимость страховки");
         } else if (isSalaryClient) {
-            rate = rate.subtract(BigDecimal.valueOf(1)); // -1% за зарплатного клиента
+            rate = rate.subtract(BigDecimal.valueOf(1));
             logger.info("Ставка снижена на 1% за участие в программе зарплатного клиента");
         }
 
@@ -92,18 +91,22 @@ public class LoanServiceImpl implements LoanService {
     }
 
     private BigDecimal calculateInsuranceCost(LoanApplication application) {
+        // 10000 + (запрашиваемая_сумма/1000) * (количество_платежных_периодов)
         BigDecimal insuranceBase = new BigDecimal("10000");
-        BigDecimal insuranceVariable = application.getAmount().divide(BigDecimal.valueOf(1000)).multiply(BigDecimal.valueOf(application.getTerm()));
+        BigDecimal insuranceVariable = application.getAmount().divide(BigDecimal.valueOf(1000), 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(application.getTerm()));
         BigDecimal totalInsuranceCost = insuranceBase.add(insuranceVariable);
         logger.info("Расчет стоимости страховки: базовая часть {}, переменная часть {}, итоговая сумма {}", insuranceBase, insuranceVariable, totalInsuranceCost);
         return totalInsuranceCost;
     }
 
     private BigDecimal calculateMonthlyPayment(BigDecimal amount, BigDecimal rate, Integer term) {
-        BigDecimal monthlyRate = rate.divide(BigDecimal.valueOf(12), RoundingMode.HALF_UP);
-        BigDecimal monthlyPayment = amount.multiply(monthlyRate).divide(
-                BigDecimal.ONE.subtract(BigDecimal.ONE.divide((BigDecimal.ONE.add(monthlyRate)).pow(term), RoundingMode.HALF_UP)),
-                RoundingMode.HALF_UP);
+        BigDecimal monthlyRate = rate.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP).divide(BigDecimal.valueOf(12), 6, RoundingMode.HALF_UP);
+        BigDecimal monthlyPayment = amount.
+                multiply(monthlyRate).divide(
+                        BigDecimal.ONE.subtract(
+                                BigDecimal.ONE.divide(
+                                        (BigDecimal.ONE.add(monthlyRate)).pow(term),6, RoundingMode.HALF_UP)),
+                        2, RoundingMode.HALF_UP);
         logger.info("Расчет аннуитетного платежа: сумма {}, ставка {}, срок {}, ежемесячный платеж {}", amount, rate, term, monthlyPayment);
         return monthlyPayment;
     }
@@ -111,12 +114,12 @@ public class LoanServiceImpl implements LoanService {
     public boolean prescoring(LoanApplication loanApplication) {
         logger.info("Начало предварительной проверки заявки: {}", loanApplication);
 
-        if (!isValidName(loanApplication.getFirstName()) || !isValidName(loanApplication.getLastName())) {
+        if (isValidName(loanApplication.getFirstName()) || isValidName(loanApplication.getLastName())) {
             logger.warn("Некорректное имя или фамилия: {} {}", loanApplication.getFirstName(), loanApplication.getLastName());
             return false;
         }
 
-        if (loanApplication.getMiddleName() != null && !isValidName(loanApplication.getMiddleName())) {
+        if (loanApplication.getMiddleName() != null && isValidName(loanApplication.getMiddleName())) {
             logger.warn("Некорректное отчество: {}", loanApplication.getMiddleName());
             return false;
         }
@@ -151,7 +154,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     private boolean isValidName(String name) {
-        return name != null && name.matches("[A-Za-z]{2,30}");
+        return name == null || !name.matches("[A-Za-z]{2,30}");
     }
 
     private boolean isValidAge(LocalDate birthdate) {

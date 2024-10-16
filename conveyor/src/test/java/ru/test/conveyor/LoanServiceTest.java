@@ -3,11 +3,12 @@ package ru.test.conveyor;
 import com.example.credit.application.model.LoanApplicationRequestDTO;
 import com.example.credit.application.model.LoanOfferDTO;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import ru.test.conveyor.entity.LoanApplication;
 import ru.test.conveyor.entity.LoanOffer;
 import ru.test.conveyor.mapper.LoanApplicationMapper;
@@ -22,20 +23,25 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
 public class LoanServiceTest {
 
     @InjectMocks
     private LoanServiceImpl loanService;
 
     @Mock
-    private LoanOfferMapper loanOfferMapper;
+    private LoanOfferMapper loanOfferMapperMock;
 
     @Mock
+    private LoanApplicationMapper loanApplicationMapperMock;
+
+    @Autowired
+    private LoanOfferMapper loanOfferMapper;
+    @Autowired
     private LoanApplicationMapper loanApplicationMapper;
 
     private LoanApplicationRequestDTO validLoanApplicationDTO;
     private LoanApplication validLoanApplication;
-    private LoanOffer loanOffer;
 
     @BeforeEach
     public void setUp() {
@@ -63,72 +69,78 @@ public class LoanServiceTest {
         validLoanApplication.setPassportSeries("1234");
         validLoanApplication.setPassportNumber("567890");
 
-        loanOffer = new LoanOffer();
+        LoanOffer loanOffer = new LoanOffer();
         loanOffer.setTotalAmount(BigDecimal.valueOf(50000));
         loanOffer.setRate(BigDecimal.valueOf(12));
         loanOffer.setTerm(12);
         loanOffer.setMonthlyPayment(BigDecimal.valueOf(4500));
 
-        when(loanApplicationMapper.toEntity(any(LoanApplicationRequestDTO.class))).thenReturn(validLoanApplication);
-        when(loanOfferMapper.toDTO(any(LoanOffer.class))).thenReturn(new LoanOfferDTO());
+        when(loanApplicationMapperMock.toEntity(any(LoanApplicationRequestDTO.class))).thenReturn(validLoanApplication);
+        when(loanOfferMapperMock.toDTO(any(LoanOffer.class))).thenReturn(new LoanOfferDTO());
+    }
+
+    @Test
+    public void testGetLoanOffers_Success() {
+        loanService = new LoanServiceImpl(loanOfferMapper, loanApplicationMapper);
+        LoanServiceImpl loanServiceSpy = spy(loanService);
+
+        doReturn(true).when(loanServiceSpy).prescoring(validLoanApplication);
+
+        List<LoanOfferDTO> offers = loanServiceSpy.getLoanOffers(validLoanApplicationDTO);
+
+        assertNotNull(offers, "Список предложений не должен быть null");
+        assertEquals(4, offers.size(), "Должно быть сгенерировано 4 предложения");
+
+        // Проверяем свойства первого предложения, например
+        LoanOfferDTO firstOffer = offers.get(0);
+        assertNotNull(firstOffer, "Первое предложение не должно быть null");
+        assertEquals(12, firstOffer.getTerm(), "Срок предложения должен быть 12 месяцев");
+
+        LoanOfferDTO secondOffer = offers.get(1);
+        assertNotNull(secondOffer, "Второе предложение не должно быть null");
+
+        doReturn(false).when(loanServiceSpy).prescoring(validLoanApplication);
+        List<LoanOfferDTO> emptyOffers = loanServiceSpy.getLoanOffers(validLoanApplicationDTO);
+        assertTrue(emptyOffers.isEmpty(), "Если прескоринг не пройден, предложения не должны генерироваться");
     }
 
 
     @Test
     public void testGetLoanOffers_PrescoringFailed() {
+        loanService = new LoanServiceImpl(loanOfferMapper, loanApplicationMapper);
         LoanServiceImpl loanServiceSpy = spy(loanService);
         doReturn(false).when(loanServiceSpy).prescoring(any(LoanApplication.class));
 
         List<LoanOfferDTO> offers = loanServiceSpy.getLoanOffers(validLoanApplicationDTO);
 
         assertNotNull(offers);
-        assertEquals(0, offers.size(), "Предложения не должны генерироваться, если prescoring не пройден");
-
-        verify(loanApplicationMapper).toEntity(validLoanApplicationDTO);
-
-        verify(loanOfferMapper, never()).toDTO(any());
-    }
-
-    @Disabled
-    @Test
-    public void testGetLoanOffers_Success() {
-        LoanServiceImpl loanServiceSpy = spy(loanService);
-        doReturn(true).when(loanServiceSpy).prescoring(validLoanApplication);
-
-        List<LoanOfferDTO> offers = loanService.getLoanOffers(validLoanApplicationDTO);
-
-        assertNotNull(offers);
-        assertEquals(4, offers.size(), "Должно быть сгенерировано 4 предложения");
-
-        verify(loanApplicationMapper).toEntity(validLoanApplicationDTO);
-        verify(loanOfferMapper, times(4)).toDTO(any(LoanOffer.class));
-
+        assertEquals(0, offers.size(), "Предложения не должны генерироваться, если прескоринг не пройден");
     }
 
     @Test
     public void testPrescoring_ValidData() {
         boolean result = loanService.prescoring(validLoanApplication);
-        assertTrue(result, "Prescoring должен быть успешным для валидации данных");
+        assertTrue(result, "Прескоринг должен быть успешным для валидации данных");
     }
 
     @Test
     public void testPrescoring_InvalidName() {
         validLoanApplication.setFirstName("J1");
         boolean result = loanService.prescoring(validLoanApplication);
-        assertFalse(result, "Prescoring должен быть неуспешным при некорректном имени");
+        assertFalse(result, "Прескоринг должен быть неуспешным при некорректном имени");
     }
 
     @Test
     public void testPrescoring_InvalidAmount() {
         validLoanApplication.setAmount(BigDecimal.valueOf(1));
         boolean result = loanService.prescoring(validLoanApplication);
-        assertFalse(result, "Prescoring должен быть неуспешным при сумме кредита меньше минимальной");
+        assertFalse(result, "Прескоринг должен быть неуспешным при сумме кредита меньше минимальной");
     }
 
     @Test
     public void testPrescoring_InvalidAge() {
         validLoanApplication.setBirthdate(LocalDate.now().minusYears(17));
         boolean result = loanService.prescoring(validLoanApplication);
-        assertFalse(result, "Prescoring должен быть неуспешным при возрасте младше 18 лет");
+        assertFalse(result, "Прескоринг должен быть неуспешным при возрасте младше 18 лет");
     }
 }

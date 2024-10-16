@@ -8,11 +8,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import ru.test.conveyor.entity.Credit;
 import ru.test.conveyor.entity.Employment;
+import ru.test.conveyor.entity.PaymentScheduleElement;
 import ru.test.conveyor.entity.ScoringData;
 import ru.test.conveyor.enums.Gender;
 import ru.test.conveyor.enums.MaritalStatus;
 import ru.test.conveyor.mapper.CreditMapper;
-import ru.test.conveyor.mapper.EmploymentMapper;
 import ru.test.conveyor.mapper.ScoringDataMapper;
 
 import java.math.BigDecimal;
@@ -25,21 +25,18 @@ import java.util.ArrayList;
 @RequiredArgsConstructor
 public class ScoringServiceImpl implements ScoringService {
     private static final Logger logger = LoggerFactory.getLogger(ScoringServiceImpl.class);
-    private static final BigDecimal BASE_RATE = new BigDecimal("10"); // базовая ставка
+    private static final BigDecimal BASE_RATE = new BigDecimal("25");
 
     private final ScoringDataMapper scoringDataMapper;
     private final CreditMapper creditMapper;
-    private final EmploymentMapper employmentMapper;
 
     @Override
     public CreditDTO getCreditCalculation(ScoringDataDTO scoringDataDTO) {
         logger.info("Получен запрос на расчёт кредита для данных: {}", scoringDataDTO);
 
-        // TODO не работает маппер
         ScoringData scoringData = scoringDataMapper.toEntity(scoringDataDTO);
         logger.info("ScoringDataDTO преобразован в ScoringData: {}", scoringData);
 
-        // Выполняем скоринг
         return scoring(scoringData);
     }
 
@@ -47,39 +44,35 @@ public class ScoringServiceImpl implements ScoringService {
         BigDecimal rate = BASE_RATE;
         logger.info("Начальная ставка: {}", rate);
 
-        // Проверка на отказные случаи
         if (isDeclined(scoringData)) {
             logger.warn("Заявка отклонена на основе скоринговых проверок для данных: {}", scoringData);
             throw new IllegalArgumentException("Client is declined based on initial checks");
         }
 
-        // Модификация ставки по рабочему статусу
         rate = adjustRateForEmployment(scoringData.getEmployment(), rate);
         logger.info("Ставка после модификации по рабочему статусу: {}", rate);
 
-        // Модификация ставки по семейному положению
         rate = adjustRateForMaritalStatus(scoringData.getMaritalStatus(), rate);
         logger.info("Ставка после модификации по семейному положению: {}", rate);
 
-        // Модификация ставки по полу и возрасту
-        rate = adjustRateForGenderAndAge(scoringData.getGender(), scoringData.getBirthDate(), rate);
+        rate = adjustRateForGenderAndAge(scoringData.getGender(), scoringData.getBirthdate(), rate);
         logger.info("Ставка после модификации по полу и возрасту: {}", rate);
 
-        // Модификация ставки по количеству иждивенцев
         if (scoringData.getDependentAmount() != null && scoringData.getDependentAmount() > 1) {
             rate = rate.add(BigDecimal.ONE);
             logger.info("Ставка увеличена на 1% из-за наличия более 1 иждивенца. Итоговая ставка: {}", rate);
         }
 
-        // Расчет ежемесячного платежа
+
         BigDecimal monthlyPayment = calculateMonthlyPayment(scoringData.getAmount(), rate, scoringData.getTerm());
         logger.info("Рассчитан ежемесячный платеж: {}", monthlyPayment);
 
-        // Расчет полной стоимости кредита (ПСК)
         BigDecimal psk = calculatePsk(monthlyPayment, scoringData.getTerm());
         logger.info("Рассчитан ПСК: {}", psk);
 
-        // Возврат итогового результата
+        ArrayList<PaymentScheduleElement> paymentSchedule = calculatePaymentSchedule(monthlyPayment, scoringData.getTerm(), scoringData.getAmount(), rate);
+
+
         Credit credit = new Credit(
                 scoringData.getAmount(),
                 scoringData.getTerm(),
@@ -88,7 +81,7 @@ public class ScoringServiceImpl implements ScoringService {
                 psk,
                 scoringData.getIsInsuranceEnabled(),
                 scoringData.getIsSalaryClient(),
-                new ArrayList<>()
+                paymentSchedule
         );
         logger.info("Итоговый расчёт кредита: {}", credit);
 
@@ -96,22 +89,39 @@ public class ScoringServiceImpl implements ScoringService {
     }
 
     private boolean isDeclined(ScoringData scoringData) {
-        // Проверка возраста
-        int age = Period.between(scoringData.getBirthDate(), LocalDate.now()).getYears();
+        if (scoringData.getBirthdate() == null) {
+            logger.warn("Заявка отклонена: не указана дата рождения.");
+            return true;
+        }
+
+        int age = Period.between(scoringData.getBirthdate(), LocalDate.now()).getYears();
         if (age < 20 || age > 60) {
             logger.warn("Заявка отклонена из-за возраста: {}", age);
             return true;
         }
 
-        // Проверка стажа работы
         Employment employment = scoringData.getEmployment();
+        if (employment == null) {
+            logger.warn("Заявка отклонена: не указаны данные о занятости.");
+            return true;
+        }
+
+        if (employment.getWorkExperienceTotal() == null || employment.getWorkExperienceCurrent() == null) {
+            logger.warn("Заявка отклонена: не указаны данные о стаже работы.");
+            return true;
+        }
+
         if (employment.getWorkExperienceTotal() < 12 || employment.getWorkExperienceCurrent() < 3) {
             logger.warn("Заявка отклонена из-за недостаточного стажа работы: {} месяцев (общий) и {} месяцев (текущий)",
                     employment.getWorkExperienceTotal(), employment.getWorkExperienceCurrent());
             return true;
         }
 
-        // Проверка суммы займа относительно зарплаты
+        if (scoringData.getAmount() == null || employment.getSalary() == null) {
+            logger.warn("Заявка отклонена: не указаны сумма займа или зарплата.");
+            return true;
+        }
+
         if (scoringData.getAmount().compareTo(employment.getSalary().multiply(BigDecimal.valueOf(20))) > 0) {
             logger.warn("Заявка отклонена из-за слишком высокой суммы займа по сравнению с зарплатой");
             return true;
@@ -119,6 +129,7 @@ public class ScoringServiceImpl implements ScoringService {
 
         return false;
     }
+
 
     private BigDecimal adjustRateForEmployment(Employment employment, BigDecimal rate) {
         switch (employment.getEmploymentStatus()) {
@@ -181,12 +192,41 @@ public class ScoringServiceImpl implements ScoringService {
     }
 
     private BigDecimal calculateMonthlyPayment(BigDecimal amount, BigDecimal rate, Integer term) {
-        BigDecimal monthlyRate = rate.divide(BigDecimal.valueOf(12), RoundingMode.HALF_UP);
-        return amount.multiply(monthlyRate).divide(BigDecimal.ONE.subtract(
-                BigDecimal.ONE.divide((BigDecimal.ONE.add(monthlyRate)).pow(term), RoundingMode.HALF_UP)), RoundingMode.HALF_UP);
+        BigDecimal monthlyRate = rate.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP).divide(BigDecimal.valueOf(12), 6, RoundingMode.HALF_UP);
+        return amount.
+                multiply(monthlyRate).divide(
+                        BigDecimal.ONE.subtract(
+                                BigDecimal.ONE.divide(
+                                        (BigDecimal.ONE.add(monthlyRate)).pow(term), 6, RoundingMode.HALF_UP)),
+                        2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal calculatePsk(BigDecimal monthlyPayment, Integer term) {
         return monthlyPayment.multiply(BigDecimal.valueOf(term));
+    }
+
+    private ArrayList<PaymentScheduleElement> calculatePaymentSchedule(BigDecimal monthlyPayment, Integer term, BigDecimal amount, BigDecimal rate) {
+        ArrayList<PaymentScheduleElement> paymentSchedule = new ArrayList<>();
+        BigDecimal monthlyRate = rate.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP).divide(BigDecimal.valueOf(12), 6, RoundingMode.HALF_UP);
+
+        for (int i = 1; i <= term; i++) {
+            PaymentScheduleElement paymentScheduleElement = new PaymentScheduleElement();
+            paymentScheduleElement.setNumber(i);
+            paymentScheduleElement.setDate(LocalDate.now().plusMonths(i));
+            paymentScheduleElement.setTotalPayment(monthlyPayment);
+
+            BigDecimal interest = amount.multiply(monthlyRate).divide(BigDecimal.valueOf(1), 2, RoundingMode.HALF_UP);
+            paymentScheduleElement.setInterestPayment(interest);
+
+            BigDecimal monthlyDebtPayment = monthlyPayment.subtract(interest);
+            paymentScheduleElement.setDebtPayment(monthlyDebtPayment);
+
+            amount = amount.subtract(monthlyDebtPayment);
+            paymentScheduleElement.setRemainingDebt(amount);
+
+            paymentSchedule.add(paymentScheduleElement);
+        }
+
+        return paymentSchedule;
     }
 }

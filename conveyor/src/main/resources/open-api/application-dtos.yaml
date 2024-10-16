@@ -179,7 +179,7 @@ components:
             "employerINN": "1234567890",
             "salary": "50000.00",
             "position": "MANAGER",
-            "workExperienceTotal": 10,
+            "workExperienceTotal": 12,
             "workExperienceCurrent": 5
           },
           "account": "1234567890123456",
@@ -211,7 +211,7 @@ components:
         paymentSchedule:
           type: array
           items:
-            $ref: '#/components/schemas/PaymentScheduleElement'
+            $ref: '#/components/schemas/PaymentScheduleElementDTO'
       example:
         {
           "amount": "100000.00",
@@ -268,7 +268,7 @@ components:
         workExperienceCurrent:
           type: integer
 
-    PaymentScheduleElement:
+    PaymentScheduleElementDTO:
       type: object
       properties:
         number:

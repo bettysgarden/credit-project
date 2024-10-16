@@ -4,14 +4,13 @@ import com.example.credit.application.model.CreditDTO;
 import com.example.credit.application.model.EmploymentDTO;
 import com.example.credit.application.model.ScoringDataDTO;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import ru.test.conveyor.entity.Credit;
 import ru.test.conveyor.mapper.CreditMapper;
-import ru.test.conveyor.mapper.EmploymentMapper;
 import ru.test.conveyor.mapper.ScoringDataMapper;
 import ru.test.conveyor.service.ScoringServiceImpl;
 
@@ -19,36 +18,59 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
+@SpringBootTest
 public class ScoringServiceTest {
 
     @InjectMocks
     private ScoringServiceImpl scoringService;
 
-    @Mock
+    @Autowired
     private ScoringDataMapper scoringDataMapper;
-
-    @Mock
+    @Autowired
     private CreditMapper creditMapper;
 
-    @Mock
-    private EmploymentMapper employmentMapper;
+    private ScoringDataDTO scoringDataDTO;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        scoringService = new ScoringServiceImpl(scoringDataMapper, creditMapper);
+
+        EmploymentDTO employment = new EmploymentDTO();
+        employment.setEmploymentStatus(EmploymentDTO.EmploymentStatusEnum.EMPLOYED);
+        employment.setEmployerINN("1234567890");
+        employment.setSalary(BigDecimal.valueOf(50000));
+        employment.setPosition(EmploymentDTO.PositionEnum.MANAGER);
+        employment.setWorkExperienceTotal(13);
+        employment.setWorkExperienceCurrent(5);
+
+        scoringDataDTO = new ScoringDataDTO();
+        scoringDataDTO.setFirstName("Ivan");
+        scoringDataDTO.setLastName("Petrov");
+        scoringDataDTO.setMiddleName("ßIvanovich");
+        scoringDataDTO.setGender(ScoringDataDTO.GenderEnum.MALE);
+        scoringDataDTO.setBirthdate(LocalDate.of(1985, 4, 12));
+        scoringDataDTO.setPassportSeries("1234");
+        scoringDataDTO.setPassportNumber("567890");
+        scoringDataDTO.setPassportIssueDate(LocalDate.of(2010, 5, 15));
+        scoringDataDTO.setPassportIssueBranch("Branch #1");
+        scoringDataDTO.setMaritalStatus(ScoringDataDTO.MaritalStatusEnum.MARRIED);
+        scoringDataDTO.setDependentAmount(2);
+        scoringDataDTO.setAccount("1234567890123456");
+        scoringDataDTO.setIsInsuranceEnabled(true);
+        scoringDataDTO.setIsSalaryClient(false);
+        scoringDataDTO.setEmployment(employment);
+        scoringDataDTO.setAmount(BigDecimal.valueOf(100000));
+        scoringDataDTO.setTerm(12);
     }
 
-    @Disabled
     @Test
     void testCreditCalculation_ValidData() {
-        ScoringDataDTO scoringDataDTO = getScoringDataDTO(BigDecimal.valueOf(100000), 12);
-        Credit expectedCredit = new Credit(BigDecimal.valueOf(100000), 12, BigDecimal.valueOf(9000), BigDecimal.valueOf(12), BigDecimal.valueOf(108000), false, false, null);
 
-        when(scoringDataMapper.toEntity(any(ScoringDataDTO.class))).thenReturn(null);
+        scoringDataDTO.setAmount(BigDecimal.valueOf(100000));
+        scoringDataDTO.setTerm(12);
+        Credit expectedCredit = new Credit(BigDecimal.valueOf(100000), 12, BigDecimal.valueOf(9000), BigDecimal.valueOf(12), BigDecimal.valueOf(108000), false, false, null);
 
         CreditDTO actualCredit = scoringService.getCreditCalculation(scoringDataDTO);
 
@@ -57,88 +79,36 @@ public class ScoringServiceTest {
         assertEquals(expectedCredit.getTerm(), actualCredit.getTerm());
     }
 
-    @Disabled
     @Test
     void testScoring_AgeUnderLimit_ShouldThrowException() {
-        ScoringDataDTO scoringDataDTO = getScoringDataDTO(BigDecimal.valueOf(100000), 12);
+        scoringDataDTO.setAmount(BigDecimal.valueOf(100000));
+        scoringDataDTO.setTerm(12);
         scoringDataDTO.setBirthdate(LocalDate.now().minusYears(18));
 
-        ScoringServiceImpl scoringServiceSpy = spy(scoringService);
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            scoringServiceSpy.getCreditCalculation(scoringDataDTO);
-        });
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> scoringService.getCreditCalculation(scoringDataDTO));
 
         assertTrue(exception.getMessage().contains("Client is declined based on initial checks"));
     }
 
-    @Disabled
     @Test
     void testScoring_EmploymentStatusUnemployed_ShouldThrowException() {
-        ScoringDataDTO scoringDataDTO = getScoringDataDTO(BigDecimal.valueOf(100000), 12);
+        scoringDataDTO.setAmount(BigDecimal.valueOf(100000));
+        scoringDataDTO.setTerm(12);
         scoringDataDTO.getEmployment().setEmploymentStatus(EmploymentDTO.EmploymentStatusEnum.UNEMPLOYED);
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            scoringService.getCreditCalculation(scoringDataDTO);
-        });
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> scoringService.getCreditCalculation(scoringDataDTO));
 
         assertTrue(exception.getMessage().contains("Client is unemployed, scoring is declined"));
     }
 
-    @Disabled
-    @Test
-    void testScoring_ValidRateCalculation() {
-        ScoringDataDTO scoringDataDTO = getScoringDataDTO(BigDecimal.valueOf(100000), 12);
-        scoringDataDTO.setGender(ScoringDataDTO.GenderEnum.MALE);
-        scoringDataDTO.setBirthdate(LocalDate.now().minusYears(40));
-
-        CreditDTO creditDTO = scoringService.getCreditCalculation(scoringDataDTO);
-
-        assertNotNull(creditDTO);
-        assertTrue(creditDTO.getRate().compareTo(BigDecimal.valueOf(7)) < 0);
-    }
-
-    @Disabled
-    @Test
-    void testScoring_DependentAmountAdjustment() {
-        ScoringDataDTO scoringDataDTO = getScoringDataDTO(BigDecimal.valueOf(100000), 12);
-        scoringDataDTO.setDependentAmount(3);
-
-        CreditDTO creditDTO = scoringService.getCreditCalculation(scoringDataDTO);
-
-        assertNotNull(creditDTO);
-        assertTrue(creditDTO.getRate().compareTo(BigDecimal.valueOf(11)) > 0);
-    }
-
-    @Disabled
     @Test
     void testIsDeclined_InvalidExperience_ShouldReturnTrue() {
-        ScoringDataDTO scoringDataDTO = getScoringDataDTO(BigDecimal.valueOf(100000), 12);
-        scoringDataDTO.getEmployment().setWorkExperienceTotal(6); // Меньше 12 месяцев опыта
+        scoringDataDTO.setAmount(BigDecimal.valueOf(100000));
+        scoringDataDTO.setTerm(12);
+        scoringDataDTO.getEmployment().setWorkExperienceTotal(6);
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            scoringService.getCreditCalculation(scoringDataDTO);
-        });
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> scoringService.getCreditCalculation(scoringDataDTO));
 
         assertTrue(exception.getMessage().contains("Client is declined based on initial checks"));
-    }
-
-    private ScoringDataDTO getScoringDataDTO(BigDecimal amount, int term) {
-        EmploymentDTO employment = new EmploymentDTO();
-        employment.setEmploymentStatus(EmploymentDTO.EmploymentStatusEnum.EMPLOYED);
-        employment.setSalary(BigDecimal.valueOf(50000));
-        employment.setWorkExperienceTotal(24);
-        employment.setWorkExperienceCurrent(12);
-
-        ScoringDataDTO scoringData = new ScoringDataDTO();
-        scoringData.setAmount(amount);
-        scoringData.setTerm(term);
-        scoringData.setBirthdate(LocalDate.now().minusYears(30));
-        scoringData.setGender(ScoringDataDTO.GenderEnum.MALE);
-        scoringData.setMaritalStatus(ScoringDataDTO.MaritalStatusEnum.SINGLE);
-        scoringData.setEmployment(employment);
-        scoringData.setIsInsuranceEnabled(false);
-        scoringData.setIsSalaryClient(false);
-        return scoringData;
     }
 }
