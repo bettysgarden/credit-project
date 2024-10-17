@@ -28,21 +28,6 @@
         <url/>
     </scm>
 
-    <dependencies>
-        <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-            <version>3.1.0</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api -->
-        <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-            <version>3.0.0</version>
-        </dependency>
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -68,7 +53,7 @@
                             <importMappings>
                                 <importMapping>java.util.Date=java.time.LocalDateTime</importMapping>
                             </importMappings>
-                            <inputSpec>${project.basedir}/src/main/resources/open-api/application-dtos.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/open-api/conveyor-api.yaml</inputSpec>
                             <configOptions>
                                 <delegatePattern>false</delegatePattern>
                                 <interfaceOnly>true</interfaceOnly>
