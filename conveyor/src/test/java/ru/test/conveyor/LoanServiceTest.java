@@ -15,6 +15,7 @@ import ru.test.conveyor.exception.InvalidLoanApplicationException;
 import ru.test.conveyor.mapper.LoanApplicationMapper;
 import ru.test.conveyor.mapper.LoanOfferMapper;
 import ru.test.conveyor.service.LoanServiceImpl;
+import ru.test.conveyor.util.LoanApplicationValidator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -22,7 +23,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 public class LoanServiceTest {
@@ -43,11 +45,13 @@ public class LoanServiceTest {
 
     private LoanApplicationRequestDTO validLoanApplicationDTO;
     private LoanApplication validLoanApplication;
+    private LoanApplicationValidator validator;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         loanService = new LoanServiceImpl(loanOfferMapper, loanApplicationMapper);
+        validator = new LoanApplicationValidator();
 
         validLoanApplicationDTO = new LoanApplicationRequestDTO();
         validLoanApplicationDTO.setFirstName("John");
@@ -85,14 +89,14 @@ public class LoanServiceTest {
     public void testGetLoanOffers_Success() {
         LoanServiceImpl loanServiceSpy = spy(loanService);
 
-        doReturn(true).when(loanServiceSpy).prescoring(validLoanApplication);
+        List<String> validationErrors = validator.validate(validLoanApplication);
+        assertTrue(validationErrors.isEmpty());
 
         List<LoanOfferDTO> offers = loanServiceSpy.getLoanOffers(validLoanApplicationDTO);
 
         assertNotNull(offers, "Список предложений не должен быть null");
         assertEquals(4, offers.size(), "Должно быть сгенерировано 4 предложения");
 
-        // Проверяем свойства первого предложения, например
         LoanOfferDTO firstOffer = offers.get(0);
         assertNotNull(firstOffer, "Первое предложение не должно быть null");
         assertEquals(12, firstOffer.getTerm(), "Срок предложения должен быть 12 месяцев");
@@ -105,7 +109,9 @@ public class LoanServiceTest {
     @Test
     public void testGetLoanOffers_PrescoringFailed() {
         LoanServiceImpl loanServiceSpy = spy(loanService);
-        doReturn(false).when(loanServiceSpy).prescoring(any(LoanApplication.class));
+        validLoanApplication.setFirstName("11111");
+        List<String> validationErrors = validator.validate(validLoanApplication);
+        assertFalse(validationErrors.isEmpty());
 
         validLoanApplicationDTO.setFirstName("11111");
         assertThrows(InvalidLoanApplicationException.class, () -> loanServiceSpy.getLoanOffers(validLoanApplicationDTO));
@@ -113,29 +119,31 @@ public class LoanServiceTest {
 
     @Test
     public void testPrescoring_ValidData() {
-        boolean result = loanService.prescoring(validLoanApplication);
-        assertTrue(result, "Прескоринг должен быть успешным для валидации данных");
+        List<String> validationErrors = validator.validate(validLoanApplication);
+        assertTrue(validationErrors.isEmpty());
     }
-
 
     @Test
     public void testPrescoring_InvalidName() {
         validLoanApplication.setLastName("J1");
-        boolean result = loanService.prescoring(validLoanApplication);
-        assertFalse(result, "Прескоринг должен быть неуспешным при некорректном имени");
+        List<String> validationErrors = validator.validate(validLoanApplication);
+
+        assertTrue(validationErrors.contains("Invalid last name"));
     }
 
     @Test
     public void testPrescoring_InvalidAmount() {
         validLoanApplication.setAmount(BigDecimal.valueOf(1));
-        boolean result = loanService.prescoring(validLoanApplication);
-        assertFalse(result, "Прескоринг должен быть неуспешным при сумме кредита меньше минимальной");
+        List<String> validationErrors = validator.validate(validLoanApplication);
+
+        assertTrue(validationErrors.contains("Loan amount is below the minimum allowed value"));
     }
 
     @Test
     public void testPrescoring_InvalidAge() {
         validLoanApplication.setBirthdate(LocalDate.now().minusYears(17));
-        boolean result = loanService.prescoring(validLoanApplication);
-        assertFalse(result, "Прескоринг должен быть неуспешным при возрасте младше 18 лет");
+        List<String> validationErrors = validator.validate(validLoanApplication);
+
+        assertTrue(validationErrors.contains("Applicant is not of legal age"));
     }
 }

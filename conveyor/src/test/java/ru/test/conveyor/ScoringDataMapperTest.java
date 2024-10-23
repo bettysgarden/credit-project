@@ -24,6 +24,28 @@ class ScoringDataMapperTest {
     @Autowired
     private ScoringDataMapper scoringDataMapper;
 
+    private static void compare(ScoringData scoringData, ScoringDataDTO scoringDataDTO) {
+        assertEquals(scoringData.getAmount(), scoringDataDTO.getAmount());
+        assertEquals(scoringData.getTerm(), scoringDataDTO.getTerm());
+        assertEquals(scoringData.getFirstName(), scoringDataDTO.getFirstName());
+        assertEquals(scoringData.getLastName(), scoringDataDTO.getLastName());
+        assertEquals(ScoringDataDTO.GenderEnum.MALE, scoringDataDTO.getGender());
+        assertEquals(scoringData.getBirthdate(), scoringDataDTO.getBirthdate());
+        assertEquals(scoringData.getPassportSeries(), scoringDataDTO.getPassportSeries());
+        assertEquals(scoringData.getPassportNumber(), scoringDataDTO.getPassportNumber());
+        assertEquals(scoringData.getPassportIssueDate(), scoringDataDTO.getPassportIssueDate());
+        assertEquals(scoringData.getPassportIssueBranch(), scoringDataDTO.getPassportIssueBranch());
+        assertEquals(ScoringDataDTO.MaritalStatusEnum.MARRIED, scoringDataDTO.getMaritalStatus());
+        assertEquals(scoringData.getDependentAmount(), scoringDataDTO.getDependentAmount());
+        assertNotNull(scoringDataDTO.getEmployment());
+        assertEquals(scoringData.getEmployment().getSalary(), scoringDataDTO.getEmployment().getSalary());
+        assertEquals(scoringData.getEmployment().getWorkExperienceTotal(), scoringDataDTO.getEmployment().getWorkExperienceTotal());
+        assertEquals(scoringData.getEmployment().getWorkExperienceCurrent(), scoringDataDTO.getEmployment().getWorkExperienceCurrent());
+        assertEquals(scoringData.getAccount(), scoringDataDTO.getAccount());
+        assertEquals(scoringData.getIsInsuranceEnabled(), scoringDataDTO.getIsInsuranceEnabled());
+        assertEquals(scoringData.getIsSalaryClient(), scoringDataDTO.getIsSalaryClient());
+    }
+
     @Test
     void testToEntity() {
         EmploymentDTO employment = new EmploymentDTO();
@@ -87,27 +109,5 @@ class ScoringDataMapperTest {
 
         assertNotNull(dto);
         compare(entity, dto);
-    }
-
-    private static void compare(ScoringData scoringData, ScoringDataDTO scoringDataDTO) {
-        assertEquals(scoringData.getAmount(), scoringDataDTO.getAmount());
-        assertEquals(scoringData.getTerm(), scoringDataDTO.getTerm());
-        assertEquals(scoringData.getFirstName(), scoringDataDTO.getFirstName());
-        assertEquals(scoringData.getLastName(), scoringDataDTO.getLastName());
-        assertEquals(ScoringDataDTO.GenderEnum.MALE, scoringDataDTO.getGender());
-        assertEquals(scoringData.getBirthdate(), scoringDataDTO.getBirthdate());
-        assertEquals(scoringData.getPassportSeries(), scoringDataDTO.getPassportSeries());
-        assertEquals(scoringData.getPassportNumber(), scoringDataDTO.getPassportNumber());
-        assertEquals(scoringData.getPassportIssueDate(), scoringDataDTO.getPassportIssueDate());
-        assertEquals(scoringData.getPassportIssueBranch(), scoringDataDTO.getPassportIssueBranch());
-        assertEquals(ScoringDataDTO.MaritalStatusEnum.MARRIED, scoringDataDTO.getMaritalStatus());
-        assertEquals(scoringData.getDependentAmount(), scoringDataDTO.getDependentAmount());
-        assertNotNull(scoringDataDTO.getEmployment());
-        assertEquals(scoringData.getEmployment().getSalary(), scoringDataDTO.getEmployment().getSalary());
-        assertEquals(scoringData.getEmployment().getWorkExperienceTotal(), scoringDataDTO.getEmployment().getWorkExperienceTotal());
-        assertEquals(scoringData.getEmployment().getWorkExperienceCurrent(), scoringDataDTO.getEmployment().getWorkExperienceCurrent());
-        assertEquals(scoringData.getAccount(), scoringDataDTO.getAccount());
-        assertEquals(scoringData.getIsInsuranceEnabled(), scoringDataDTO.getIsInsuranceEnabled());
-        assertEquals(scoringData.getIsSalaryClient(), scoringDataDTO.getIsSalaryClient());
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.test.conveyor.entity.Credit;
 import ru.test.conveyor.exception.CreditDeclinedException;
+import ru.test.conveyor.exception.InvalidScoringDataException;
 import ru.test.conveyor.mapper.CreditMapper;
 import ru.test.conveyor.mapper.ScoringDataMapper;
 import ru.test.conveyor.service.ScoringServiceImpl;
@@ -86,7 +87,7 @@ public class ScoringServiceTest {
         scoringDataDTO.setTerm(12);
         scoringDataDTO.setBirthdate(LocalDate.now().minusYears(18));
 
-        assertThrows(CreditDeclinedException.class, () -> scoringService.getCreditCalculation(scoringDataDTO));
+        assertThrows(InvalidScoringDataException.class, () -> scoringService.getCreditCalculation(scoringDataDTO));
     }
 
     @Test
@@ -104,6 +105,6 @@ public class ScoringServiceTest {
         scoringDataDTO.setTerm(12);
         scoringDataDTO.getEmployment().setWorkExperienceTotal(6);
 
-        assertThrows(CreditDeclinedException.class, () -> scoringService.getCreditCalculation(scoringDataDTO));
+        assertThrows(InvalidScoringDataException.class, () -> scoringService.getCreditCalculation(scoringDataDTO));
     }
 }

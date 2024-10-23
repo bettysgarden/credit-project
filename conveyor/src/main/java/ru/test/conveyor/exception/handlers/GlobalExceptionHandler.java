@@ -4,31 +4,62 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import ru.test.conveyor.exception.CreditDeclinedException;
-import ru.test.conveyor.exception.InvalidLoanApplicationException;
-import ru.test.conveyor.exception.InvalidScoringDataException;
-import ru.test.conveyor.exception.LoanCalculationException;
+import ru.test.conveyor.dto.ErrorResponse;
+import ru.test.conveyor.exception.*;
+
+import java.util.Collections;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
     @ExceptionHandler(InvalidLoanApplicationException.class)
-    public ResponseEntity<String> handleInvalidLoanApplication(InvalidLoanApplicationException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handleInvalidLoanApplication(InvalidLoanApplicationException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                "INVALID_LOAN_APPLICATION",
+                "Предварительная проверка не пройдена",
+                ex.getErrors()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(LoanCalculationException.class)
-    public ResponseEntity<String> handleLoanCalculationException(LoanCalculationException ex) {
-        return new ResponseEntity<>("Ошибка расчета кредита: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<ErrorResponse> handleLoanCalculationException(LoanCalculationException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                "LOAN_CALCULATION_ERROR",
+                "Ошибка расчета кредита: " + ex.getMessage(),
+                Collections.emptyList()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(InvalidScoringDataException.class)
-    public ResponseEntity<String> handleInvalidScoringData(InvalidScoringDataException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handleInvalidScoringData(InvalidScoringDataException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                "INVALID_SCORING_DATA",
+                "Скоринг не пройден: ",
+                ex.getErrors()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(CreditDeclinedException.class)
-    public ResponseEntity<String> handleCreditDeclinedException(CreditDeclinedException ex) {
-        return new ResponseEntity<>("Ошибка расчета кредита: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<ErrorResponse> handleCreditDeclinedException(CreditDeclinedException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                "CREDIT_DECLINED_ERROR",
+                "Заявка на кредит отклонена: ",
+                ex.getErrors()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(CreditCalculationException.class)
+    public ResponseEntity<ErrorResponse> handleCreditCalculationException(CreditCalculationException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                "CREDIT_CALC_ERROR",
+                "Ошибка расчета кредита: " + ex.getMessage(),
+                Collections.emptyList()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }
