@@ -128,7 +128,7 @@ public class LoanServiceTest {
         validLoanApplication.setLastName("J1");
         List<String> validationErrors = validator.validate(validLoanApplication);
 
-        assertTrue(validationErrors.contains("Invalid last name"));
+        assertTrue(validationErrors.contains("Некорректная фамилия."));
     }
 
     @Test
@@ -136,7 +136,7 @@ public class LoanServiceTest {
         validLoanApplication.setAmount(BigDecimal.valueOf(1));
         List<String> validationErrors = validator.validate(validLoanApplication);
 
-        assertTrue(validationErrors.contains("Loan amount is below the minimum allowed value"));
+        assertTrue(validationErrors.contains("Размер займа меньше минимально допустимого."));
     }
 
     @Test
@@ -144,6 +144,6 @@ public class LoanServiceTest {
         validLoanApplication.setBirthdate(LocalDate.now().minusYears(17));
         List<String> validationErrors = validator.validate(validLoanApplication);
 
-        assertTrue(validationErrors.contains("Applicant is not of legal age"));
+        assertTrue(validationErrors.contains("Недопустимый возраст клиента."));
     }
 }
