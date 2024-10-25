@@ -3,6 +3,7 @@ package ru.test.conveyor.mapper;
 import com.example.credit.application.model.LoanOfferDTO;
 
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import ru.test.conveyor.model.entity.LoanOffer;
 
 import java.math.BigDecimal;
@@ -11,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class LoanOfferMapperTest {
-    private final LoanOfferMapper mapper = LoanOfferMapper.INSTANCE;
+    private final LoanOfferMapper mapper = Mappers.getMapper(LoanOfferMapper.class);
 
     @Test
     void toDTO_shouldMapLoanOfferToLoanOfferDTO() {

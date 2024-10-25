@@ -5,12 +5,14 @@ import com.example.credit.application.model.LoanOfferDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.test.conveyor.exception.InvalidLoanApplicationException;
+import ru.test.conveyor.mapper.CreditMapper;
 import ru.test.conveyor.mapper.LoanApplicationMapper;
 import ru.test.conveyor.mapper.LoanOfferMapper;
 import ru.test.conveyor.model.entity.LoanApplication;
@@ -33,10 +35,10 @@ class LoanServiceImplTest {
     private LoanServiceImpl loanService;
 
     @Spy
-    private LoanOfferMapper loanOfferMapper = LoanOfferMapper.INSTANCE;
+    private LoanOfferMapper loanOfferMapper = Mappers.getMapper(LoanOfferMapper.class);
 
     @Spy
-    private LoanApplicationMapper loanApplicationMapper = LoanApplicationMapper.INSTANCE;
+    private LoanApplicationMapper loanApplicationMapper = Mappers.getMapper(LoanApplicationMapper.class);
 
     @Mock
     private LoanApplicationValidator validator;
@@ -99,7 +101,7 @@ class LoanServiceImplTest {
         application.setAmount(BigDecimal.valueOf(100000));
         application.setTerm(12);
 
-        LoanOffer offer = loanService.getLoanOffer(application, true, true);
+        LoanOffer offer = loanService.getLoanOffer(application, true, true, 1L);
 
         assertEquals(new BigDecimal("19"), offer.getRate());
     }
@@ -110,7 +112,7 @@ class LoanServiceImplTest {
         application.setAmount(BigDecimal.valueOf(100000));
         application.setTerm(12);
 
-        LoanOffer offer = loanService.getLoanOffer(application, true, false);
+        LoanOffer offer = loanService.getLoanOffer(application, true, false, 1L);
 
         assertEquals(new BigDecimal("20"), offer.getRate());
     }
@@ -121,7 +123,7 @@ class LoanServiceImplTest {
         application.setAmount(BigDecimal.valueOf(100000));
         application.setTerm(12);
 
-        LoanOffer offer = loanService.getLoanOffer(application, false, true);
+        LoanOffer offer = loanService.getLoanOffer(application, false, true, 1L);
 
         assertEquals(new BigDecimal("24"), offer.getRate());
     }
@@ -132,7 +134,7 @@ class LoanServiceImplTest {
         application.setAmount(BigDecimal.valueOf(100000));
         application.setTerm(12);
 
-        LoanOffer offer = loanService.getLoanOffer(application, false, false);
+        LoanOffer offer = loanService.getLoanOffer(application, false, false, 1L);
 
         assertEquals(new BigDecimal("25"), offer.getRate());
     }

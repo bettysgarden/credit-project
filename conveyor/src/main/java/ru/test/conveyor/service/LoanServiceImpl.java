@@ -54,9 +54,8 @@ public class LoanServiceImpl implements LoanService {
             long applicationId = 1;
             for (boolean insurance : flags) {
                 for (boolean salaryClient : flags) {
-                    LoanOffer loanOffer = getLoanOffer(loanApplication, insurance, salaryClient);
+                    LoanOffer loanOffer = getLoanOffer(loanApplication, insurance, salaryClient, applicationId++);
                     LoanOfferDTO loanOfferDTO = loanOfferMapper.toDTO(loanOffer);
-                    loanOfferDTO.setApplicationId(applicationId++);
                     offers.add(loanOfferDTO);
                 }
             }
@@ -74,7 +73,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public LoanOffer getLoanOffer(LoanApplication application, Boolean isInsuranceEnabled, Boolean isSalaryClient) {
+    public LoanOffer getLoanOffer(LoanApplication application, Boolean isInsuranceEnabled, Boolean isSalaryClient, Long applicationId) {
         try {
             LoanOffer loanOffer = new LoanOffer();
             BigDecimal amount = application.getAmount();
@@ -98,6 +97,7 @@ public class LoanServiceImpl implements LoanService {
             BigDecimal monthlyPayment = calculateMonthlyPayment(amount, rate, application.getTerm());
             log.info("Расчет аннуитетного платежа завершен, ежемесячный платеж: {}", monthlyPayment);
 
+            loanOffer.setApplicationId(applicationId);
             loanOffer.setTotalAmount(amount);
             loanOffer.setTerm(application.getTerm());
             loanOffer.setRate(rate);

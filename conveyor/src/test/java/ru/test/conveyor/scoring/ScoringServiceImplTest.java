@@ -5,6 +5,7 @@ import com.example.credit.application.model.EmploymentDTO;
 import com.example.credit.application.model.ScoringDataDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -27,10 +28,10 @@ public class ScoringServiceImplTest {
     private ScoringServiceImpl scoringService;
 
     @Spy
-    private ScoringDataMapper scoringDataMapper = ScoringDataMapper.INSTANCE;
+    private ScoringDataMapper scoringDataMapper = Mappers.getMapper(ScoringDataMapper.class);
 
     @Spy
-    private CreditMapper creditMapper = CreditMapper.INSTANCE;
+    private CreditMapper creditMapper = Mappers.getMapper(CreditMapper.class);
 
     @Mock
     private ScoringDataValidator validator;

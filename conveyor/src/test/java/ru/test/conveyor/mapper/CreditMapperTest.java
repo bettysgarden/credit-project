@@ -2,6 +2,7 @@ package ru.test.conveyor.mapper;
 
 import com.example.credit.application.model.CreditDTO;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import ru.test.conveyor.model.entity.Credit;
 import ru.test.conveyor.model.entity.PaymentScheduleElement;
 
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class CreditMapperTest {
-    private final CreditMapper mapper = CreditMapper.INSTANCE;
+    private final CreditMapper mapper = Mappers.getMapper(CreditMapper.class);
 
     @Test
     void toDto_shouldMapCreditToCreditDTO() {

@@ -3,6 +3,7 @@ package ru.test.conveyor.mapper;
 import com.example.credit.application.model.EmploymentDTO;
 import com.example.credit.application.model.ScoringDataDTO;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import ru.test.conveyor.model.entity.ScoringData;
 
 import java.math.BigDecimal;
@@ -13,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ScoringDataMapperTest {
 
-    private final ScoringDataMapper mapper = ScoringDataMapper.INSTANCE;
+    private final ScoringDataMapper mapper = Mappers.getMapper(ScoringDataMapper.class);
 
     private static void compare(ScoringData scoringData, ScoringDataDTO scoringDataDTO) {
         assertEquals(scoringData.getAmount(), scoringDataDTO.getAmount());
