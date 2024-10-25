@@ -28,7 +28,7 @@ public class LoanOfferMapperTest {
         LoanOfferDTO loanOfferDTO = mapper.toDTO(loanOffer);
 
         assertNotNull(loanOfferDTO);
-        assertEquals(loanOffer.getApplicationId(), Long.valueOf(loanOfferDTO.getApplicationId()));
+        assertEquals(loanOffer.getApplicationId(), loanOfferDTO.getApplicationId());
         assertEquals(loanOffer.getRequestedAmount(), loanOfferDTO.getRequestedAmount());
         assertEquals(loanOffer.getTotalAmount(), loanOfferDTO.getTotalAmount());
         assertEquals(loanOffer.getTerm(), loanOfferDTO.getTerm());

@@ -35,7 +35,7 @@ public class LoanServiceImpl implements LoanService {
     public static Long generateApplicationId() {
         long timestamp = System.currentTimeMillis();
         long randomPart = ThreadLocalRandom.current().nextLong(10000, 99999);
-        return timestamp * (-100000) + randomPart;
+        return timestamp * 100000 + randomPart;
     }
 
     @Override
