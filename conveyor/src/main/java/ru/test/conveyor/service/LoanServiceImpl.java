@@ -17,7 +17,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static ru.test.conveyor.util.CreditCalculator.calculateInsuranceCost;
 import static ru.test.conveyor.util.CreditCalculator.calculateMonthlyPayment;
@@ -31,12 +30,6 @@ public class LoanServiceImpl implements LoanService {
     private final LoanOfferMapper loanOfferMapper;
     private final LoanApplicationMapper loanApplicationMapper;
     private final LoanApplicationValidator validator = new LoanApplicationValidator();
-
-    public static Long generateApplicationId() {
-        long timestamp = System.currentTimeMillis();
-        long randomPart = ThreadLocalRandom.current().nextLong(10000, 99999);
-        return timestamp * 100000 + randomPart;
-    }
 
     @Override
     public List<LoanOfferDTO> getLoanOffers(LoanApplicationRequestDTO loanApplicationDTO) {
@@ -55,13 +48,18 @@ public class LoanServiceImpl implements LoanService {
 
 
         try {
-            boolean isInsuranceEnabled = true;
-            boolean isMonthlyPaymentEnabled = true;
+            boolean[] flags = {true, false};
             List<LoanOfferDTO> offers = new ArrayList<>();
-            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, isInsuranceEnabled, isMonthlyPaymentEnabled)));
-            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, isInsuranceEnabled, !isMonthlyPaymentEnabled)));
-            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, !isInsuranceEnabled, isMonthlyPaymentEnabled)));
-            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, !isInsuranceEnabled, !isMonthlyPaymentEnabled)));
+
+            long applicationId = 1;
+            for (boolean insurance : flags) {
+                for (boolean salaryClient : flags) {
+                    LoanOffer loanOffer = getLoanOffer(loanApplication, insurance, salaryClient);
+                    LoanOfferDTO loanOfferDTO = loanOfferMapper.toDTO(loanOffer);
+                    loanOfferDTO.setApplicationId(applicationId++);
+                    offers.add(loanOfferDTO);
+                }
+            }
 
             offers.sort(Comparator.comparing(LoanOfferDTO::getRate));
             log.info("Сформировано {} кредитных предложений для заявки: {}", offers.size(), loanApplication);
@@ -100,7 +98,6 @@ public class LoanServiceImpl implements LoanService {
             BigDecimal monthlyPayment = calculateMonthlyPayment(amount, rate, application.getTerm());
             log.info("Расчет аннуитетного платежа завершен, ежемесячный платеж: {}", monthlyPayment);
 
-            loanOffer.setApplicationId(generateApplicationId());
             loanOffer.setTotalAmount(amount);
             loanOffer.setTerm(application.getTerm());
             loanOffer.setRate(rate);
