@@ -1,4 +1,4 @@
-package ru.test.conveyor.entity;
+package ru.test.conveyor.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,6 +17,7 @@ public class ScoringData {
     private Integer term;
     private String firstName;
     private String lastName;
+    private String middleName;
     private Gender gender;
     private LocalDate birthdate;
     private String passportSeries;

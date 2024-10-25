@@ -1,16 +1,9 @@
-package ru.test.conveyor;
+package ru.test.conveyor.mapper;
 
 import com.example.credit.application.model.EmploymentDTO;
 import com.example.credit.application.model.ScoringDataDTO;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import ru.test.conveyor.entity.Employment;
-import ru.test.conveyor.entity.ScoringData;
-import ru.test.conveyor.enums.EmploymentStatus;
-import ru.test.conveyor.enums.Gender;
-import ru.test.conveyor.enums.MaritalStatus;
-import ru.test.conveyor.mapper.ScoringDataMapper;
+import ru.test.conveyor.model.entity.ScoringData;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,11 +11,9 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest
 class ScoringDataMapperTest {
 
-    @Autowired
-    private ScoringDataMapper scoringDataMapper;
+    private final ScoringDataMapper mapper = ScoringDataMapper.INSTANCE;
 
     private static void compare(ScoringData scoringData, ScoringDataDTO scoringDataDTO) {
         assertEquals(scoringData.getAmount(), scoringDataDTO.getAmount());
@@ -74,40 +65,9 @@ class ScoringDataMapperTest {
         dto.setIsInsuranceEnabled(true);
         dto.setIsSalaryClient(false);
 
-        ScoringData entity = scoringDataMapper.toEntity(dto);
+        ScoringData entity = mapper.toEntity(dto);
 
         assertNotNull(entity);
-        compare(entity, dto);
-    }
-
-    @Test
-    void testToDTO() {
-        Employment employment = new Employment();
-        employment.setSalary(BigDecimal.valueOf(50000));
-        employment.setEmploymentStatus(EmploymentStatus.EMPLOYED);
-        employment.setWorkExperienceTotal(24);
-        employment.setWorkExperienceCurrent(12);
-
-        ScoringData entity = new ScoringData();
-        entity.setAmount(BigDecimal.valueOf(100000));
-        entity.setTerm(12);
-        entity.setFirstName("Ivan");
-        entity.setLastName("Petrov");
-        entity.setGender(Gender.MALE);
-        entity.setBirthdate(LocalDate.of(1985, 4, 12));
-        entity.setPassportSeries("1234");
-        entity.setPassportNumber("567890");
-        entity.setPassportIssueDate(LocalDate.of(2010, 1, 1));
-        entity.setPassportIssueBranch("Москва");
-        entity.setMaritalStatus(MaritalStatus.MARRIED);
-        entity.setDependentAmount(2);
-        entity.setEmployment(employment);
-        entity.setAccount("1234567890");
-        entity.setIsInsuranceEnabled(true);
-        entity.setIsSalaryClient(false);
-        ScoringDataDTO dto = scoringDataMapper.toDTO(entity);
-
-        assertNotNull(dto);
         compare(entity, dto);
     }
 }

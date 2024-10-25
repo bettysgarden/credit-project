@@ -1,8 +1,8 @@
 package ru.test.conveyor.util;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.test.conveyor.entity.LoanApplication;
-import ru.test.conveyor.entity.PaymentScheduleElement;
+import ru.test.conveyor.model.entity.LoanApplication;
+import ru.test.conveyor.model.entity.PaymentScheduleElement;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

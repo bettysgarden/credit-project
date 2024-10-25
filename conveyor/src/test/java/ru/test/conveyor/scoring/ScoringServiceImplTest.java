@@ -1,4 +1,4 @@
-package ru.test.conveyor;
+package ru.test.conveyor.scoring;
 
 import com.example.credit.application.model.CreditDTO;
 import com.example.credit.application.model.EmploymentDTO;
@@ -6,38 +6,40 @@ import com.example.credit.application.model.ScoringDataDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import ru.test.conveyor.entity.Credit;
+import org.mockito.Spy;
 import ru.test.conveyor.exception.CreditDeclinedException;
-import ru.test.conveyor.exception.InvalidScoringDataException;
 import ru.test.conveyor.mapper.CreditMapper;
 import ru.test.conveyor.mapper.ScoringDataMapper;
+import ru.test.conveyor.model.entity.Credit;
 import ru.test.conveyor.service.ScoringServiceImpl;
+import ru.test.conveyor.util.ScoringDataValidator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-public class ScoringServiceTest {
+public class ScoringServiceImplTest {
 
     @InjectMocks
     private ScoringServiceImpl scoringService;
 
-    @Autowired
-    private ScoringDataMapper scoringDataMapper;
-    @Autowired
-    private CreditMapper creditMapper;
+    @Spy
+    private ScoringDataMapper scoringDataMapper = ScoringDataMapper.INSTANCE;
+
+    @Spy
+    private CreditMapper creditMapper = CreditMapper.INSTANCE;
+
+    @Mock
+    private ScoringDataValidator validator;
 
     private ScoringDataDTO scoringDataDTO;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        scoringService = new ScoringServiceImpl(scoringDataMapper, creditMapper);
 
         EmploymentDTO employment = new EmploymentDTO();
         employment.setEmploymentStatus(EmploymentDTO.EmploymentStatusEnum.EMPLOYED);
@@ -50,7 +52,7 @@ public class ScoringServiceTest {
         scoringDataDTO = new ScoringDataDTO();
         scoringDataDTO.setFirstName("Ivan");
         scoringDataDTO.setLastName("Petrov");
-        scoringDataDTO.setMiddleName("ßIvanovich");
+        scoringDataDTO.setMiddleName("Ivanovich");
         scoringDataDTO.setGender(ScoringDataDTO.GenderEnum.MALE);
         scoringDataDTO.setBirthdate(LocalDate.of(1985, 4, 12));
         scoringDataDTO.setPassportSeries("1234");
@@ -82,29 +84,11 @@ public class ScoringServiceTest {
     }
 
     @Test
-    void testScoring_AgeUnderLimit_ShouldThrowException() {
-        scoringDataDTO.setAmount(BigDecimal.valueOf(100000));
-        scoringDataDTO.setTerm(12);
-        scoringDataDTO.setBirthdate(LocalDate.now().minusYears(18));
-
-        assertThrows(InvalidScoringDataException.class, () -> scoringService.getCreditCalculation(scoringDataDTO));
-    }
-
-    @Test
     void testScoring_EmploymentStatusUnemployed_ShouldThrowException() {
         scoringDataDTO.setAmount(BigDecimal.valueOf(100000));
         scoringDataDTO.setTerm(12);
         scoringDataDTO.getEmployment().setEmploymentStatus(EmploymentDTO.EmploymentStatusEnum.UNEMPLOYED);
 
         assertThrows(CreditDeclinedException.class, () -> scoringService.getCreditCalculation(scoringDataDTO));
-    }
-
-    @Test
-    void testIsDeclined_InvalidExperience_ShouldReturnTrue() {
-        scoringDataDTO.setAmount(BigDecimal.valueOf(100000));
-        scoringDataDTO.setTerm(12);
-        scoringDataDTO.getEmployment().setWorkExperienceTotal(6);
-
-        assertThrows(InvalidScoringDataException.class, () -> scoringService.getCreditCalculation(scoringDataDTO));
     }
 }

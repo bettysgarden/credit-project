@@ -2,13 +2,18 @@ package ru.test.conveyor.mapper;
 
 import com.example.credit.application.model.ScoringDataDTO;
 import org.mapstruct.Mapper;
-import ru.test.conveyor.entity.ScoringData;
-import ru.test.conveyor.mapper.enums.GenderMapper;
-import ru.test.conveyor.mapper.enums.MaritalStatusMapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
+import ru.test.conveyor.model.entity.ScoringData;
 
-@Mapper(uses = {MaritalStatusMapper.class, GenderMapper.class})
+@Mapper
 public interface ScoringDataMapper {
-    ScoringData toEntity(ScoringDataDTO scoringDataDTO);
 
-    ScoringDataDTO toDTO(ScoringData scoringData);
+    ScoringDataMapper INSTANCE = Mappers.getMapper(ScoringDataMapper.class);
+
+    @Mapping(source = "employment.position", target = "employment.position")
+    @Mapping(source = "employment.employmentStatus", target = "employment.employmentStatus")
+    @Mapping(source = "maritalStatus", target = "maritalStatus")
+    @Mapping(source = "gender", target = "gender")
+    ScoringData toEntity(ScoringDataDTO scoringDataDTO);
 }

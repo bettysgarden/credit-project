@@ -1,4 +1,4 @@
-package ru.test.conveyor.entity;
+package ru.test.conveyor.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

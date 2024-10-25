@@ -1,4 +1,4 @@
-package ru.test.conveyor.dto;
+package ru.test.conveyor.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -5,10 +5,6 @@ import com.example.credit.application.model.ScoringDataDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.test.conveyor.entity.Credit;
-import ru.test.conveyor.entity.Employment;
-import ru.test.conveyor.entity.PaymentScheduleElement;
-import ru.test.conveyor.entity.ScoringData;
 import ru.test.conveyor.enums.Gender;
 import ru.test.conveyor.enums.MaritalStatus;
 import ru.test.conveyor.exception.CreditCalculationException;
@@ -16,6 +12,10 @@ import ru.test.conveyor.exception.CreditDeclinedException;
 import ru.test.conveyor.exception.InvalidScoringDataException;
 import ru.test.conveyor.mapper.CreditMapper;
 import ru.test.conveyor.mapper.ScoringDataMapper;
+import ru.test.conveyor.model.entity.Credit;
+import ru.test.conveyor.model.entity.Employment;
+import ru.test.conveyor.model.entity.PaymentScheduleElement;
+import ru.test.conveyor.model.entity.ScoringData;
 import ru.test.conveyor.util.ScoringDataValidator;
 
 import java.math.BigDecimal;
@@ -34,8 +34,7 @@ public class ScoringServiceImpl implements ScoringService {
 
     private final ScoringDataMapper scoringDataMapper;
     private final CreditMapper creditMapper;
-    private final ScoringDataValidator scoringDataValidator = new ScoringDataValidator();
-
+    private final ScoringDataValidator scoringDataValidator;
 
     @Override
     public CreditDTO getCreditCalculation(ScoringDataDTO scoringDataDTO) {

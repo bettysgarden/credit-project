@@ -14,6 +14,6 @@ springdoc:
     path: /api-docs
   swagger-ui:
     enabled: true
-    path: /swagger-ui/index.html
+    path: /swagger-ui.html
   model-and-view-allowed: false
 

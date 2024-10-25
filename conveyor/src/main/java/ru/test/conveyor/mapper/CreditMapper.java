@@ -2,11 +2,12 @@ package ru.test.conveyor.mapper;
 
 import com.example.credit.application.model.CreditDTO;
 import org.mapstruct.Mapper;
-import ru.test.conveyor.entity.Credit;
+import org.mapstruct.factory.Mappers;
+import ru.test.conveyor.model.entity.Credit;
 
-@Mapper(uses = {PaymentScheduleElementMapper.class})
+@Mapper
 public interface CreditMapper {
-    CreditDTO toDto(Credit credit);
+    CreditMapper INSTANCE = Mappers.getMapper(CreditMapper.class);
 
-    Credit toEntity(CreditDTO dto);
+    CreditDTO toDto(Credit credit);
 }

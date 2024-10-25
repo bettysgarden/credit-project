@@ -1,21 +1,23 @@
-package ru.test.conveyor.entity;
+package ru.test.conveyor.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoanOffer {
-    private Long applicationId;
-    private BigDecimal requestedAmount;
-    private BigDecimal totalAmount;
+public class Credit {
+    private BigDecimal amount;
     private Integer term;
     private BigDecimal monthlyPayment;
     private BigDecimal rate;
+    private BigDecimal psk;
     private Boolean isInsuranceEnabled;
     private Boolean isSalaryClient;
+    private List<PaymentScheduleElement> paymentSchedule;
 }
+

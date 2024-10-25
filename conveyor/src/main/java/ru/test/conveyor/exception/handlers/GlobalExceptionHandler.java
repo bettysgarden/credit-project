@@ -4,8 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import ru.test.conveyor.dto.ErrorResponse;
 import ru.test.conveyor.exception.*;
+import ru.test.conveyor.model.dto.ErrorResponse;
 
 import java.util.Collections;
 
@@ -15,7 +15,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidLoanApplicationException.class)
     public ResponseEntity<ErrorResponse> handleInvalidLoanApplication(InvalidLoanApplicationException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
-                "INVALID_LOAN_APPLICATION",
+                InvalidLoanApplicationException.INVALID_LOAN_APPLICATION,
                 "Предварительная проверка не пройдена",
                 ex.getErrors()
         );
@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(LoanCalculationException.class)
     public ResponseEntity<ErrorResponse> handleLoanCalculationException(LoanCalculationException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
-                "LOAN_CALCULATION_ERROR",
+                LoanCalculationException.LOAN_CALCULATION_ERROR,
                 "Ошибка расчета кредита: " + ex.getMessage(),
                 Collections.emptyList()
         );
@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidScoringDataException.class)
     public ResponseEntity<ErrorResponse> handleInvalidScoringData(InvalidScoringDataException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
-                "INVALID_SCORING_DATA",
+                InvalidScoringDataException.INVALID_SCORING_DATA,
                 "Скоринг не пройден: ",
                 ex.getErrors()
         );
@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CreditDeclinedException.class)
     public ResponseEntity<ErrorResponse> handleCreditDeclinedException(CreditDeclinedException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
-                "CREDIT_DECLINED_ERROR",
+                CreditDeclinedException.CREDIT_DECLINED_ERROR,
                 "Заявка на кредит отклонена: ",
                 ex.getErrors()
         );
@@ -55,7 +55,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CreditCalculationException.class)
     public ResponseEntity<ErrorResponse> handleCreditCalculationException(CreditCalculationException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
-                "CREDIT_CALC_ERROR",
+                CreditCalculationException.CREDIT_CALC_ERROR,
                 "Ошибка расчета кредита: " + ex.getMessage(),
                 Collections.emptyList()
         );

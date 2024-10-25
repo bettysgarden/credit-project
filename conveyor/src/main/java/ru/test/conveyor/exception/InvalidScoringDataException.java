@@ -1,8 +1,12 @@
 package ru.test.conveyor.exception;
 
+import lombok.Getter;
+
 import java.util.List;
 
+@Getter
 public class InvalidScoringDataException extends RuntimeException {
+    public static final String INVALID_SCORING_DATA = "INVALID_SCORING_DATA";
     private final List<String> errors;
 
     public InvalidScoringDataException(String message, List<String> errors) {
@@ -10,7 +14,4 @@ public class InvalidScoringDataException extends RuntimeException {
         this.errors = errors;
     }
 
-    public List<String> getErrors() {
-        return errors;
-    }
 }

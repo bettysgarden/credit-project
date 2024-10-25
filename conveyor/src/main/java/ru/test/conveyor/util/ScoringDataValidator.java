@@ -1,7 +1,8 @@
 package ru.test.conveyor.util;
 
-import ru.test.conveyor.entity.Employment;
-import ru.test.conveyor.entity.ScoringData;
+import org.springframework.stereotype.Component;
+import ru.test.conveyor.model.entity.Employment;
+import ru.test.conveyor.model.entity.ScoringData;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -9,6 +10,7 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class ScoringDataValidator {
 
     public List<String> validateScoringData(ScoringData scoringData) {

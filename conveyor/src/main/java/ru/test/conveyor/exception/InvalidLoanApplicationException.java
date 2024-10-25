@@ -1,9 +1,13 @@
 package ru.test.conveyor.exception;
 
+import lombok.Getter;
+
 import java.util.List;
 
+@Getter
 public class InvalidLoanApplicationException extends RuntimeException {
 
+    public static final String INVALID_LOAN_APPLICATION = "INVALID_LOAN_APPLICATION";
     private final List<String> errors;
 
     public InvalidLoanApplicationException(String message, List<String> errors) {
@@ -11,7 +15,4 @@ public class InvalidLoanApplicationException extends RuntimeException {
         this.errors = errors;
     }
 
-    public List<String> getErrors() {
-        return errors;
-    }
 }

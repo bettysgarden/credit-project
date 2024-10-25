@@ -5,12 +5,12 @@ import com.example.credit.application.model.LoanOfferDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.test.conveyor.entity.LoanApplication;
-import ru.test.conveyor.entity.LoanOffer;
 import ru.test.conveyor.exception.InvalidLoanApplicationException;
 import ru.test.conveyor.exception.LoanCalculationException;
 import ru.test.conveyor.mapper.LoanApplicationMapper;
 import ru.test.conveyor.mapper.LoanOfferMapper;
+import ru.test.conveyor.model.entity.LoanApplication;
+import ru.test.conveyor.model.entity.LoanOffer;
 import ru.test.conveyor.util.LoanApplicationValidator;
 
 import java.math.BigDecimal;
@@ -55,22 +55,28 @@ public class LoanServiceImpl implements LoanService {
 
 
         try {
+            boolean isInsuranceEnabled = true;
+            boolean isMonthlyPaymentEnabled = true;
             List<LoanOfferDTO> offers = new ArrayList<>();
-            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, true, true)));
-            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, true, false)));
-            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, false, true)));
-            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, false, false)));
+            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, isInsuranceEnabled, isMonthlyPaymentEnabled)));
+            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, isInsuranceEnabled, !isMonthlyPaymentEnabled)));
+            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, !isInsuranceEnabled, isMonthlyPaymentEnabled)));
+            offers.add(loanOfferMapper.toDTO(getLoanOffer(loanApplication, !isInsuranceEnabled, !isMonthlyPaymentEnabled)));
 
             offers.sort(Comparator.comparing(LoanOfferDTO::getRate));
             log.info("Сформировано {} кредитных предложений для заявки: {}", offers.size(), loanApplication);
             return offers;
+        } catch (InvalidLoanApplicationException e) {
+            log.warn(e.getLocalizedMessage());
+            throw e;
         } catch (Exception e) {
             log.error("Ошибка при формировании кредитных предложений: ", e);
             throw new LoanCalculationException("Ошибка при расчете предложений.");
         }
     }
 
-    private LoanOffer getLoanOffer(LoanApplication application, Boolean isInsuranceEnabled, Boolean isSalaryClient) {
+    @Override
+    public LoanOffer getLoanOffer(LoanApplication application, Boolean isInsuranceEnabled, Boolean isSalaryClient) {
         try {
             LoanOffer loanOffer = new LoanOffer();
             BigDecimal amount = application.getAmount();
@@ -107,7 +113,7 @@ public class LoanServiceImpl implements LoanService {
             return loanOffer;
         } catch (Exception e) {
             log.error("Ошибка при расчете кредитного предложения: ", e);
-            throw new LoanCalculationException("Ошибка расчета кредитного предложения.");
+            throw new LoanCalculationException("Ошибка расчета кредитного предложения." + e.getMessage());
         }
     }
 }

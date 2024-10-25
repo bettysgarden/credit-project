@@ -1,6 +1,7 @@
 package ru.test.conveyor.util;
 
-import ru.test.conveyor.entity.LoanApplication;
+import org.springframework.stereotype.Component;
+import ru.test.conveyor.model.entity.LoanApplication;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+@Component
 public class LoanApplicationValidator {
 
     public List<String> validate(LoanApplication loanApplication) {
@@ -26,7 +28,7 @@ public class LoanApplicationValidator {
             errors.add("Некорректное отчество.");
         }
 
-        if (loanApplication.getAmount().compareTo(BigDecimal.valueOf(10000)) < 0) {
+        if (loanApplication.getAmount() == null || loanApplication.getAmount().compareTo(BigDecimal.valueOf(10000)) < 0) {
             errors.add("Размер займа меньше минимально допустимого.");
         }
 
@@ -54,7 +56,7 @@ public class LoanApplicationValidator {
     }
 
     private boolean isInvalidName(String name) {
-        return name == null || !name.matches("[A-Za-z]{2,30}");
+        return name == null || !name.matches("[A-Za-z]{2,30}" ) && !name.matches("[А-Яа-яЁё]{2,30}");
     }
 
     private boolean isValidAge(LocalDate birthdate) {
