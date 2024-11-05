@@ -33,8 +33,9 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
+            <groupId>com.vladmihalcea</groupId>
+            <artifactId>hibernate-types-52</artifactId>
+            <version>2.2.2</version>
         </dependency>
 
         <dependency>
@@ -55,7 +56,10 @@
             <artifactId>flyway-core</artifactId>
             <version>10.20.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -101,16 +105,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.googlecode.flyway</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-                <version>1.5</version>
-                <configuration>
-                    <driver>com.postgresql.jdbc.Driver</driver>
-                    <url>jdbc:postgresql://localhost:5332/deal_service?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;connectionCollation=utf8_general_ci&amp;characterSetResults=UTF-8</url>
-                    <baseDir>db/migration</baseDir>
-                </configuration>
             </plugin>
         </plugins>
     </build>
