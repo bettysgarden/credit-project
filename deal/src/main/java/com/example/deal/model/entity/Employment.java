@@ -1,7 +1,7 @@
-package com.example.deal.entity;
+package com.example.deal.model.entity;
 
-import com.example.deal.enums.EmploymentStatus;
-import com.example.deal.enums.Position;
+import com.example.deal.model.enums.EmploymentStatus;
+import com.example.deal.model.enums.Position;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

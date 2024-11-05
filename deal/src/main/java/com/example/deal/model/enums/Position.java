@@ -1,4 +1,4 @@
-package com.example.deal.enums;
+package com.example.deal.model.enums;
 
 public enum Position {
     MANAGER, TOP_MANAGER, WORKER
