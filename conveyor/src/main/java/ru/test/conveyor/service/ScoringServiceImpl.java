@@ -47,10 +47,10 @@ public class ScoringServiceImpl implements ScoringService {
             throw new InvalidScoringDataException("Скоринг не пройден:", validationErrors);
         }
 
-        return scoring(scoringData);
+        return creditMapper.toDto(scoring(scoringData));
     }
 
-    public CreditDTO scoring(ScoringData scoringData) {
+    public Credit scoring(ScoringData scoringData) {
         BigDecimal rate = BASE_RATE;
 
         try {
@@ -78,8 +78,7 @@ public class ScoringServiceImpl implements ScoringService {
                     paymentSchedule
             );
             log.info("Итоговый расчёт кредита: {}", credit);
-
-            return creditMapper.toDto(credit);
+            return credit;
         } catch (InvalidScoringDataException ex) {
             log.error("Ошибка валидации скоринговых данных: {}", ex.getMessage());
             throw ex;

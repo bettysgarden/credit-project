@@ -17,6 +17,7 @@ import ru.test.conveyor.model.entity.LoanOffer;
 import ru.test.conveyor.service.LoanServiceImpl;
 import ru.test.conveyor.util.LoanApplicationValidator;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,6 +48,9 @@ class LoanServiceImplTest {
     @BeforeEach
     public void setUp() {
         validLoanApplication = new LoanApplication();
+        validLoanApplication.setAmount(new BigDecimal("100000"));
+        validLoanApplication.setTerm(12);
+
         loanOfferDTO = new LoanOfferDTO();
         validLoanApplicationDTO = new LoanApplicationRequestDTO();
 
