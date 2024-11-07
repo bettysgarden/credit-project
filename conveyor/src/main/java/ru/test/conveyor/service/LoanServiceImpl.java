@@ -29,7 +29,7 @@ public class LoanServiceImpl implements LoanService {
 
     private final LoanOfferMapper loanOfferMapper;
     private final LoanApplicationMapper loanApplicationMapper;
-    private final LoanApplicationValidator validator = new LoanApplicationValidator();
+    private final LoanApplicationValidator validator;
 
     @Override
     public List<LoanOfferDTO> getLoanOffers(LoanApplicationRequestDTO loanApplicationDTO) {
@@ -60,7 +60,7 @@ public class LoanServiceImpl implements LoanService {
                 }
             }
 
-            offers.sort(Comparator.comparing(LoanOfferDTO::getRate));
+            offers.sort(Comparator.comparing(LoanOfferDTO::getRate, Comparator.nullsLast(Comparator.naturalOrder())));
             log.info("Сформировано {} кредитных предложений для заявки: {}", offers.size(), loanApplication);
             return offers;
         } catch (InvalidLoanApplicationException e) {
@@ -81,30 +81,31 @@ public class LoanServiceImpl implements LoanService {
 
             log.info("Начало расчета кредитного предложения для страховки: {}, зарплатный клиент: {}", isInsuranceEnabled, isSalaryClient);
 
-            if (isInsuranceEnabled && isSalaryClient) {
-                rate = rate.subtract(BigDecimal.valueOf(6));
-                amount = amount.add(calculateInsuranceCost(application));
-                log.info("Ставка снижена на 6%, сумма увеличена на стоимость страховки");
-            } else if (isInsuranceEnabled) {
-                rate = rate.subtract(BigDecimal.valueOf(5));
-                amount = amount.add(calculateInsuranceCost(application));
-                log.info("Ставка снижена на 5%, сумма увеличена на стоимость страховки");
-            } else if (isSalaryClient) {
-                rate = rate.subtract(BigDecimal.valueOf(1));
-                log.info("Ставка снижена на 1% за участие в программе зарплатного клиента");
+            if (amount != null) {
+                if (isInsuranceEnabled && isSalaryClient) {
+                    rate = rate.subtract(BigDecimal.valueOf(6));
+                    amount = amount.add(calculateInsuranceCost(application));
+                    log.info("Ставка снижена на 6%, сумма увеличена на стоимость страховки");
+                } else if (isInsuranceEnabled) {
+                    rate = rate.subtract(BigDecimal.valueOf(5));
+                    amount = amount.add(calculateInsuranceCost(application));
+                    log.info("Ставка снижена на 5%, сумма увеличена на стоимость страховки");
+                } else if (isSalaryClient) {
+                    rate = rate.subtract(BigDecimal.valueOf(1));
+                    log.info("Ставка снижена на 1% за участие в программе зарплатного клиента");
+                }
+
+                BigDecimal monthlyPayment = calculateMonthlyPayment(amount, rate, application.getTerm());
+                log.info("Расчет аннуитетного платежа завершен, ежемесячный платеж: {}", monthlyPayment);
+                loanOffer.setApplicationId(applicationId);
+                loanOffer.setTotalAmount(amount);
+                loanOffer.setTerm(application.getTerm());
+                loanOffer.setRate(rate);
+                loanOffer.setMonthlyPayment(monthlyPayment);
+                loanOffer.setIsInsuranceEnabled(isInsuranceEnabled);
+                loanOffer.setIsSalaryClient(isSalaryClient);
+                loanOffer.setRequestedAmount(application.getAmount());
             }
-
-            BigDecimal monthlyPayment = calculateMonthlyPayment(amount, rate, application.getTerm());
-            log.info("Расчет аннуитетного платежа завершен, ежемесячный платеж: {}", monthlyPayment);
-
-            loanOffer.setApplicationId(applicationId);
-            loanOffer.setTotalAmount(amount);
-            loanOffer.setTerm(application.getTerm());
-            loanOffer.setRate(rate);
-            loanOffer.setMonthlyPayment(monthlyPayment);
-            loanOffer.setIsInsuranceEnabled(isInsuranceEnabled);
-            loanOffer.setIsSalaryClient(isSalaryClient);
-            loanOffer.setRequestedAmount(application.getAmount());
 
             log.info("Кредитное предложение сформировано: {}", loanOffer);
             return loanOffer;

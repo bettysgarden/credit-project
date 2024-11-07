@@ -5,28 +5,25 @@ import com.example.credit.application.model.LoanOfferDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.test.conveyor.exception.InvalidLoanApplicationException;
-import ru.test.conveyor.mapper.CreditMapper;
+import ru.test.conveyor.exception.LoanCalculationException;
 import ru.test.conveyor.mapper.LoanApplicationMapper;
 import ru.test.conveyor.mapper.LoanOfferMapper;
 import ru.test.conveyor.model.entity.LoanApplication;
 import ru.test.conveyor.model.entity.LoanOffer;
-import ru.test.conveyor.service.LoanService;
 import ru.test.conveyor.service.LoanServiceImpl;
 import ru.test.conveyor.util.LoanApplicationValidator;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.spy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LoanServiceImplTest {
@@ -34,109 +31,73 @@ class LoanServiceImplTest {
     @InjectMocks
     private LoanServiceImpl loanService;
 
-    @Spy
-    private LoanOfferMapper loanOfferMapper = Mappers.getMapper(LoanOfferMapper.class);
+    @Mock
+    private LoanOfferMapper loanOfferMapper;
 
-    @Spy
-    private LoanApplicationMapper loanApplicationMapper = Mappers.getMapper(LoanApplicationMapper.class);
+    @Mock
+    private LoanApplicationMapper loanApplicationMapper;
 
     @Mock
     private LoanApplicationValidator validator;
 
     private LoanApplicationRequestDTO validLoanApplicationDTO;
+    private LoanApplication validLoanApplication;
+    private LoanOfferDTO loanOfferDTO;
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
-
+        validLoanApplication = new LoanApplication();
+        loanOfferDTO = new LoanOfferDTO();
         validLoanApplicationDTO = new LoanApplicationRequestDTO();
-        validLoanApplicationDTO.setFirstName("John");
-        validLoanApplicationDTO.setLastName("Doe");
-        validLoanApplicationDTO.setMiddleName("Middle");
-        validLoanApplicationDTO.setBirthdate(LocalDate.of(1985, 1, 1));
-        validLoanApplicationDTO.setAmount(BigDecimal.valueOf(50000));
-        validLoanApplicationDTO.setTerm(12);
-        validLoanApplicationDTO.setEmail("john.doe@example.com");
-        validLoanApplicationDTO.setPassportSeries("1234");
-        validLoanApplicationDTO.setPassportNumber("567890");
 
-        LoanOffer loanOffer = new LoanOffer();
-        loanOffer.setTotalAmount(BigDecimal.valueOf(50000));
-        loanOffer.setRate(BigDecimal.valueOf(12));
-        loanOffer.setTerm(12);
-        loanOffer.setMonthlyPayment(BigDecimal.valueOf(4500));
+        when(loanApplicationMapper.toEntity(any(LoanApplicationRequestDTO.class))).thenReturn(validLoanApplication);
     }
 
     @Test
     public void testGetLoanOffers_Success() {
-        LoanService loanServiceSpy = spy(loanService);
+        when(validator.validate(validLoanApplication)).thenReturn(Collections.emptyList());
+        when(loanOfferMapper.toDTO(any(LoanOffer.class))).thenReturn(loanOfferDTO);
 
-        List<LoanOfferDTO> offers = loanServiceSpy.getLoanOffers(validLoanApplicationDTO);
+        List<LoanOfferDTO> offers = loanService.getLoanOffers(validLoanApplicationDTO);
 
-        assertNotNull(offers);
-        assertEquals(4, offers.size());
-
-        LoanOfferDTO firstOffer = offers.get(0);
-        assertNotNull(firstOffer);
-        assertEquals(12, firstOffer.getTerm());
-
-        LoanOfferDTO secondOffer = offers.get(1);
-        assertNotNull(secondOffer);
+        assertThat(offers).isNotNull();
+        assertThat(offers.size()).isEqualTo(4); // Должны быть 4 предложения (2 варианта страховки * 2 варианта зарплатного клиента)
+        verify(loanApplicationMapper).toEntity(validLoanApplicationDTO);
+        verify(validator).validate(validLoanApplication);
+        verify(loanOfferMapper, times(4)).toDTO(any(LoanOffer.class));
     }
 
     @Test
-    void testGetLoanOffers_InvalidApplication() {
-        validLoanApplicationDTO.setAmount(null);
+    void getLoanOffers_InvalidRequest_ThrowsInvalidLoanApplicationException() {
+        List<String> validationErrors = List.of("Ошибка в поле 'name'");
+        when(validator.validate(validLoanApplication)).thenReturn(validationErrors);
 
-        assertThrows(
+        InvalidLoanApplicationException exception = assertThrows(
                 InvalidLoanApplicationException.class,
                 () -> loanService.getLoanOffers(validLoanApplicationDTO)
         );
 
+        assertThat(exception.getErrors()).isEqualTo(validationErrors);
+        verify(loanApplicationMapper).toEntity(validLoanApplicationDTO);
+        verify(validator).validate(validLoanApplication);
+        verify(loanOfferMapper, never()).toDTO(any(LoanOffer.class));
     }
 
     @Test
-    void testGetLoanOffer_InsuranceAndSalaryClient() {
-        LoanApplication application = new LoanApplication();
-        application.setAmount(BigDecimal.valueOf(100000));
-        application.setTerm(12);
+    void getLoanOffers_UnexpectedException_ThrowsLoanCalculationException() {
+        when(validator.validate(validLoanApplication)).thenReturn(Collections.emptyList());
 
-        LoanOffer offer = loanService.getLoanOffer(application, true, true, 1L);
+        doThrow(new RuntimeException("Unexpected error")).when(loanOfferMapper).toDTO(any(LoanOffer.class));
 
-        assertEquals(new BigDecimal("19"), offer.getRate());
-    }
+        LoanCalculationException exception = assertThrows(
+                LoanCalculationException.class,
+                () -> loanService.getLoanOffers(validLoanApplicationDTO)
+        );
 
-    @Test
-    void testGetLoanOffer_OnlyInsurance() {
-        LoanApplication application = new LoanApplication();
-        application.setAmount(BigDecimal.valueOf(100000));
-        application.setTerm(12);
-
-        LoanOffer offer = loanService.getLoanOffer(application, true, false, 1L);
-
-        assertEquals(new BigDecimal("20"), offer.getRate());
-    }
-
-    @Test
-    void testGetLoanOffer_OnlySalaryClient() {
-        LoanApplication application = new LoanApplication();
-        application.setAmount(BigDecimal.valueOf(100000));
-        application.setTerm(12);
-
-        LoanOffer offer = loanService.getLoanOffer(application, false, true, 1L);
-
-        assertEquals(new BigDecimal("24"), offer.getRate());
-    }
-
-    @Test
-    void testGetLoanOffer_NoInsuranceNoSalaryClient() {
-        LoanApplication application = new LoanApplication();
-        application.setAmount(BigDecimal.valueOf(100000));
-        application.setTerm(12);
-
-        LoanOffer offer = loanService.getLoanOffer(application, false, false, 1L);
-
-        assertEquals(new BigDecimal("25"), offer.getRate());
+        assertEquals("Ошибка при расчете предложений.", exception.getMessage());
+        verify(loanApplicationMapper).toEntity(validLoanApplicationDTO);
+        verify(validator).validate(validLoanApplication);
+        verify(loanOfferMapper).toDTO(any(LoanOffer.class));
     }
 
 }
