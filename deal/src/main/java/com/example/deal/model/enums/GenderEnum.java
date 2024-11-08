@@ -1,5 +1,5 @@
 package com.example.deal.model.enums;
 
-public enum Gender {
+public enum GenderEnum {
     MALE, FEMALE, NON_BINARY
 }
