@@ -6,6 +6,5 @@ import ru.test.conveyor.model.entity.LoanOffer;
 
 @Mapper
 public interface LoanOfferMapper {
-
     LoanOfferDTO toDTO(LoanOffer loanOffer);
 }
