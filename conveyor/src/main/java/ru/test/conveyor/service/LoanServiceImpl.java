@@ -29,7 +29,7 @@ public class LoanServiceImpl implements LoanService {
 
     private final LoanOfferMapper loanOfferMapper;
     private final LoanApplicationMapper loanApplicationMapper;
-    private final LoanApplicationValidator validator = new LoanApplicationValidator();
+    private final LoanApplicationValidator validator;
 
     @Override
     public List<LoanOfferDTO> getLoanOffers(LoanApplicationRequestDTO loanApplicationDTO) {
@@ -60,7 +60,7 @@ public class LoanServiceImpl implements LoanService {
                 }
             }
 
-            offers.sort(Comparator.comparing(LoanOfferDTO::getRate));
+            offers.sort(Comparator.comparing(LoanOfferDTO::getRate, Comparator.nullsLast(Comparator.naturalOrder())));
             log.info("Сформировано {} кредитных предложений для заявки: {}", offers.size(), loanApplication);
             return offers;
         } catch (InvalidLoanApplicationException e) {
@@ -96,7 +96,6 @@ public class LoanServiceImpl implements LoanService {
 
             BigDecimal monthlyPayment = calculateMonthlyPayment(amount, rate, application.getTerm());
             log.info("Расчет аннуитетного платежа завершен, ежемесячный платеж: {}", monthlyPayment);
-
             loanOffer.setApplicationId(applicationId);
             loanOffer.setTotalAmount(amount);
             loanOffer.setTerm(application.getTerm());
@@ -105,6 +104,7 @@ public class LoanServiceImpl implements LoanService {
             loanOffer.setIsInsuranceEnabled(isInsuranceEnabled);
             loanOffer.setIsSalaryClient(isSalaryClient);
             loanOffer.setRequestedAmount(application.getAmount());
+
 
             log.info("Кредитное предложение сформировано: {}", loanOffer);
             return loanOffer;

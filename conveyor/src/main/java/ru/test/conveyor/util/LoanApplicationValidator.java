@@ -56,7 +56,7 @@ public class LoanApplicationValidator {
     }
 
     private boolean isInvalidName(String name) {
-        return name == null || !name.matches("[A-Za-z]{2,30}" ) && !name.matches("[А-Яа-яЁё]{2,30}");
+        return name == null || !name.matches("[A-Za-z]{2,30}") && !name.matches("[А-Яа-яЁё]{2,30}");
     }
 
     private boolean isValidAge(LocalDate birthdate) {

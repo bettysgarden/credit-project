@@ -1,95 +1,115 @@
 package ru.test.conveyor.scoring;
 
 import com.example.credit.application.model.CreditDTO;
-import com.example.credit.application.model.EmploymentDTO;
 import com.example.credit.application.model.ScoringDataDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import ru.test.conveyor.enums.EmploymentStatus;
+import ru.test.conveyor.enums.Gender;
+import ru.test.conveyor.enums.MaritalStatus;
 import ru.test.conveyor.exception.CreditDeclinedException;
+import ru.test.conveyor.exception.InvalidScoringDataException;
 import ru.test.conveyor.mapper.CreditMapper;
 import ru.test.conveyor.mapper.ScoringDataMapper;
 import ru.test.conveyor.model.entity.Credit;
+import ru.test.conveyor.model.entity.Employment;
+import ru.test.conveyor.model.entity.ScoringData;
 import ru.test.conveyor.service.ScoringServiceImpl;
 import ru.test.conveyor.util.ScoringDataValidator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class ScoringServiceImplTest {
 
     @InjectMocks
     private ScoringServiceImpl scoringService;
 
-    @Spy
-    private ScoringDataMapper scoringDataMapper = Mappers.getMapper(ScoringDataMapper.class);
+    @Mock
+    private ScoringDataMapper scoringDataMapper;
 
-    @Spy
-    private CreditMapper creditMapper = Mappers.getMapper(CreditMapper.class);
+    @Mock
+    private CreditMapper creditMapper;
 
     @Mock
     private ScoringDataValidator validator;
 
-    private ScoringDataDTO scoringDataDTO;
+    private ScoringDataDTO validScoringDataDTO;
+    private ScoringData validScoringData;
+    private CreditDTO expectedCreditDTO;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
 
-        EmploymentDTO employment = new EmploymentDTO();
-        employment.setEmploymentStatus(EmploymentDTO.EmploymentStatusEnum.EMPLOYED);
-        employment.setEmployerINN("1234567890");
-        employment.setSalary(BigDecimal.valueOf(50000));
-        employment.setPosition(EmploymentDTO.PositionEnum.MANAGER);
-        employment.setWorkExperienceTotal(13);
-        employment.setWorkExperienceCurrent(5);
+        Employment employment = new Employment();
+        employment.setEmploymentStatus(EmploymentStatus.EMPLOYED);
 
-        scoringDataDTO = new ScoringDataDTO();
-        scoringDataDTO.setFirstName("Ivan");
-        scoringDataDTO.setLastName("Petrov");
-        scoringDataDTO.setMiddleName("Ivanovich");
-        scoringDataDTO.setGender(ScoringDataDTO.GenderEnum.MALE);
-        scoringDataDTO.setBirthdate(LocalDate.of(1985, 4, 12));
-        scoringDataDTO.setPassportSeries("1234");
-        scoringDataDTO.setPassportNumber("567890");
-        scoringDataDTO.setPassportIssueDate(LocalDate.of(2010, 5, 15));
-        scoringDataDTO.setPassportIssueBranch("Branch #1");
-        scoringDataDTO.setMaritalStatus(ScoringDataDTO.MaritalStatusEnum.MARRIED);
-        scoringDataDTO.setDependentAmount(2);
-        scoringDataDTO.setAccount("1234567890123456");
-        scoringDataDTO.setIsInsuranceEnabled(true);
-        scoringDataDTO.setIsSalaryClient(false);
-        scoringDataDTO.setEmployment(employment);
-        scoringDataDTO.setAmount(BigDecimal.valueOf(100000));
-        scoringDataDTO.setTerm(12);
+        validScoringDataDTO = new ScoringDataDTO();
+
+        validScoringData = new ScoringData();
+        validScoringData.setEmployment(employment);
+        validScoringData.setAmount(new BigDecimal("100000"));
+        validScoringData.setTerm(12);
+        validScoringData.setMaritalStatus(MaritalStatus.SINGLE);
+        validScoringData.setGender(Gender.MALE);
+        validScoringData.setBirthdate(LocalDate.of(1990, 1, 1));
+        validScoringData.setDependentAmount(0);
+
+        expectedCreditDTO = new CreditDTO();
+
     }
 
     @Test
     void testCreditCalculation_ValidData() {
+        when(scoringDataMapper.toEntity(validScoringDataDTO)).thenReturn(validScoringData);
+        when(validator.validateScoringData(validScoringData)).thenReturn(Collections.emptyList());
+        when(creditMapper.toDto(any(Credit.class))).thenReturn(expectedCreditDTO);
 
-        scoringDataDTO.setAmount(BigDecimal.valueOf(100000));
-        scoringDataDTO.setTerm(12);
-        Credit expectedCredit = new Credit(BigDecimal.valueOf(100000), 12, BigDecimal.valueOf(9000), BigDecimal.valueOf(12), BigDecimal.valueOf(108000), false, false, null);
-
-        CreditDTO actualCredit = scoringService.getCreditCalculation(scoringDataDTO);
+        CreditDTO actualCredit = scoringService.getCreditCalculation(validScoringDataDTO);
 
         assertNotNull(actualCredit);
-        assertEquals(expectedCredit.getAmount(), actualCredit.getAmount());
-        assertEquals(expectedCredit.getTerm(), actualCredit.getTerm());
+        assertEquals(expectedCreditDTO, actualCredit);
+        verify(scoringDataMapper).toEntity(validScoringDataDTO);
+        verify(validator).validateScoringData(validScoringData);
     }
 
     @Test
-    void testScoring_EmploymentStatusUnemployed_ShouldThrowException() {
-        scoringDataDTO.setAmount(BigDecimal.valueOf(100000));
-        scoringDataDTO.setTerm(12);
-        scoringDataDTO.getEmployment().setEmploymentStatus(EmploymentDTO.EmploymentStatusEnum.UNEMPLOYED);
+    void getCreditCalculation_InvalidData_ThrowsInvalidScoringDataException() {
+        List<String> validationErrors = List.of("Invalid birth date");
+        when(scoringDataMapper.toEntity(validScoringDataDTO)).thenReturn(validScoringData);
+        when(validator.validateScoringData(validScoringData)).thenReturn(validationErrors);
 
-        assertThrows(CreditDeclinedException.class, () -> scoringService.getCreditCalculation(scoringDataDTO));
+        InvalidScoringDataException exception = assertThrows(
+                InvalidScoringDataException.class,
+                () -> scoringService.getCreditCalculation(validScoringDataDTO)
+        );
+
+        assertEquals(validationErrors, exception.getErrors());
+        verify(scoringDataMapper).toEntity(validScoringDataDTO);
+        verify(validator).validateScoringData(validScoringData);
+    }
+
+    @Test
+    void scoring_EmploymentStatusUnemployed_ThrowsCreditDeclinedException() {
+        validScoringData.getEmployment().setEmploymentStatus(EmploymentStatus.UNEMPLOYED);
+
+        CreditDeclinedException exception = assertThrows(
+                CreditDeclinedException.class,
+                () -> scoringService.scoring(validScoringData)
+        );
+
+        assertTrue(exception.getMessage().contains("Заявка на кредит отклонена"));
     }
 }
