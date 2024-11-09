@@ -1,44 +1,61 @@
 package com.example.deal.controller;
 
-import com.example.credit.application.api.DealApi;
 import com.example.credit.application.model.FinishRegistrationRequestDTO;
-import com.example.credit.application.model.LoanApplicationRequestDTO;
 import com.example.credit.application.model.LoanOfferDTO;
+import com.example.deal.model.dto.LoanApplicationRequest;
+import com.example.deal.model.dto.LoanOfferResponse;
+import com.example.deal.service.ApplicationService;
+import com.example.deal.service.ClientService;
+import com.example.deal.service.OfferService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Tag(name = "deal")
 @RestController
 @RequestMapping("/deal")
 @RequiredArgsConstructor
-public class DealController implements DealApi {
+@Slf4j
+public class DealController {
 
-    private final Logger logger = LoggerFactory.getLogger(DealController.class);
+    @Autowired
+    private ApplicationService applicationService;
+    @Autowired
+    private OfferService offerService;
+    @Autowired
+    private ClientService clientService;
 
-    @Override
     @Operation
     @PostMapping("/application")
-    public ResponseEntity<List<LoanOfferDTO>> dealApplicationPost(
-            @Parameter(name = "LoanApplicationRequestDTO", description = "Данные для расчёта кредита", required = true) @Valid @RequestBody LoanApplicationRequestDTO loanApplicationRequestDTO) {
-        logger.info("Получен запрос на расчет кредитных предложений. Параметры: {}", loanApplicationRequestDTO);
+    public ResponseEntity<List<LoanOfferResponse>> dealApplicationPost(
+            @Parameter(name = "LoanApplicationRequestDTO", description = "Данные для расчёта кредита", required = true) @Valid @RequestBody LoanApplicationRequest loanApplicationRequest) {
+        log.info("Получен запрос на расчет кредитных предложений. Параметры: {}", loanApplicationRequest);
 
-        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+        // TODO Отправляется POST запрос на /conveyor/offers МС conveyor через FeignClient.
+        List<LoanOfferResponse> loanOffers = offerService.getLoanOffers(loanApplicationRequest);
+
+        // TODO На основе LoanApplicationRequestDTO создаётся сущность Client и сохраняется в БД.
+        Long clientId = clientService.createClient(loanApplicationRequest);
+
+        // TODO Создаётся Application со связью на только что созданный Client и сохраняется в БД.
+        Long applicationId = applicationService.createApplication(loanApplicationRequest, clientId);
+
+        // TODO Каждому элементу из списка List<LoanOfferDTO> присваивается id созданной заявки (Application)
+
+        return new ResponseEntity<>(loanOffers, HttpStatus.OK);
 
     }
 
-    @Override
     @Operation
     @PutMapping("/calculate/{applicationId}")
     public ResponseEntity<Void> dealCalculateApplicationIdPut(
@@ -49,7 +66,6 @@ public class DealController implements DealApi {
 
     }
 
-    @Override
     @Operation
     @PutMapping("/offer")
     public ResponseEntity<Void> dealOfferPut(
