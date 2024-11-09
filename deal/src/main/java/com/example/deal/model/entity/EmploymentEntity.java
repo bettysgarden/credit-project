@@ -1,7 +1,8 @@
 package com.example.deal.model.entity;
 
 import jakarta.persistence.*;
-        import java.math.BigDecimal;
+
+import java.math.BigDecimal;
 
 @Table(name = "employment")
 public class EmploymentEntity extends BaseEntity {

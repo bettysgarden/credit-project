@@ -14,9 +14,9 @@ import java.util.List;
 @FeignClient(value = "${feign.client.value}", url = "${feign.client.url}", path = "${feign.client.path}")
 @Validated
 public interface ConveyorFeignClient {
-    @PostMapping("/calculation")
+    @PostMapping("/offers")
     List<LoanOfferResponse> conveyorOffers(@RequestBody @Validated LoanApplicationRequest loanApplicationRequestDTO);
 
-    @PostMapping("/offers")
+    @PostMapping("/calculation")
     CreditResponse conveyorCalculationPost(@RequestBody @Validated ScoringDataRequest scoringDataDTO);
 }

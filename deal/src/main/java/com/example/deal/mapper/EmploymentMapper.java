@@ -1,7 +1,7 @@
 package com.example.deal.mapper;
 
 import com.example.credit.application.model.EmploymentDTO;
-import com.example.deal.model.entity.Employment;
+import com.example.deal.model.Employment;
 import org.mapstruct.Mapper;
 
 

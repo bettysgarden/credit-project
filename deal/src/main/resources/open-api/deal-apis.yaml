@@ -147,6 +147,7 @@ components:
             - MARRIED
             - SINGLE
             - DIVORCED
+            - WIDOW_WIDOWER
         dependentAmount:
           type: integer
         passportIssueDate:
@@ -176,7 +177,6 @@ components:
             - EMPLOYED
             - SELF_EMPLOYED
             - UNEMPLOYED
-            - RETIRED
             - BUSINESS_OWNER
         employerINN:
           type: string
@@ -186,9 +186,10 @@ components:
         position:
           type: string
           enum:
-            - MANAGER
+            - MID_MANAGER
             - TOP_MANAGER
             - WORKER
+            - OWNER
         workExperienceTotal:
           type: integer
         workExperienceCurrent:

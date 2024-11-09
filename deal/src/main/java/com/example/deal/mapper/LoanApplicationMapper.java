@@ -1,12 +1,12 @@
 package com.example.deal.mapper;
 
 import com.example.credit.application.model.LoanApplicationRequestDTO;
-import com.example.deal.model.entity.LoanApplication;
+import com.example.deal.model.entity.ApplicationEntity;
 import org.mapstruct.Mapper;
 
 @Mapper
 public interface LoanApplicationMapper {
-    LoanApplication toEntity(LoanApplicationRequestDTO loanApplicationRequestDTO);
+    ApplicationEntity toEntity(LoanApplicationRequestDTO loanApplicationRequestDTO);
 
-    LoanApplicationRequestDTO toDTO(LoanApplication loanApplication);
+    LoanApplicationRequestDTO toDTO(ApplicationEntity loanApplication);
 }

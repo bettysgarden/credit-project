@@ -1,6 +1,6 @@
 package com.example.deal.model.dto;
 
-import com.example.deal.model.enums.Gender;
+import com.example.deal.model.enums.GenderEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 
 public class FinishRegistrationRequest {
-    private Gender gender;
+    private GenderEnum gender;
     private Integer maritalStatus;
     private Integer dependentAmount;
     private LocalDate passportIssueDate;

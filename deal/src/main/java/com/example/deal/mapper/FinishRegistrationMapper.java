@@ -1,7 +1,7 @@
 package com.example.deal.mapper;
 
 import com.example.credit.application.model.FinishRegistrationRequestDTO;
-import com.example.deal.model.entity.FinishRegistrationRequest;
+import com.example.deal.model.FinishRegistrationRequest;
 import org.mapstruct.Mapper;
 
 @Mapper

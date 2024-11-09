@@ -9,7 +9,7 @@ import org.hibernate.type.SqlTypes;
 import java.util.Date;
 
 @Table(name = "application")
-public class ApplicationEntity extends BaseEntity{
+public class ApplicationEntity extends BaseEntity {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "client_id", referencedColumnName = "id", nullable = false)

@@ -1,7 +1,7 @@
-package com.example.deal.model.entity;
+package com.example.deal.model;
 
-import com.example.deal.model.enums.Gender;
-import com.example.deal.model.enums.MaritalStatus;
+import com.example.deal.model.enums.GenderEnum;
+import com.example.deal.model.enums.MaritalStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,8 +13,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 
 public class FinishRegistrationRequest {
-    private Gender gender;
-    private MaritalStatus maritalStatus;
+    private GenderEnum gender;
+    private MaritalStatusEnum maritalStatus;
     private Integer dependentAmount;
     private LocalDate passportIssueDate;
     private String passportIssueBranch;

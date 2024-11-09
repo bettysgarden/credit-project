@@ -1,7 +1,7 @@
-package com.example.deal.model.entity;
+package com.example.deal.model;
 
-import com.example.deal.model.enums.EmploymentStatus;
-import com.example.deal.model.enums.Position;
+import com.example.deal.model.enums.EmploymentStatusEnum;
+import com.example.deal.model.enums.PositionEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,10 +12,10 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Employment {
-    private EmploymentStatus employmentStatus;
+    private EmploymentStatusEnum employmentStatus;
     private String employerINN;
     private BigDecimal salary;
-    private Position position;
+    private PositionEnum position;
     private Integer workExperienceTotal;
     private Integer workExperienceCurrent;
 
