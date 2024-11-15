@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "employment_status")
 public class EmploymentStatusEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
