@@ -28,12 +28,9 @@ import java.util.List;
 @Slf4j
 public class DealController {
 
-    @Autowired
-    private ApplicationService applicationService;
-    @Autowired
-    private OfferService offerService;
-    @Autowired
-    private ClientService clientService;
+    private final ApplicationService applicationService;
+    private final OfferService offerService;
+    private final ClientService clientService;
 
     @Operation
     @PostMapping("/application")
@@ -41,16 +38,10 @@ public class DealController {
             @Parameter(name = "LoanApplicationRequestDTO", description = "Данные для расчёта кредита", required = true) @Valid @RequestBody LoanApplicationRequest loanApplicationRequest) {
         log.info("Получен запрос на расчет кредитных предложений. Параметры: {}", loanApplicationRequest);
 
-        // TODO Отправляется POST запрос на /conveyor/offers МС conveyor через FeignClient.
         List<LoanOfferResponse> loanOffers = offerService.getLoanOffers(loanApplicationRequest);
-
-        // TODO На основе LoanApplicationRequestDTO создаётся сущность Client и сохраняется в БД.
         Long clientId = clientService.createClient(loanApplicationRequest);
-
-        // TODO Создаётся Application со связью на только что созданный Client и сохраняется в БД.
         Long applicationId = applicationService.createApplication(loanApplicationRequest, clientId);
-
-        // TODO Каждому элементу из списка List<LoanOfferDTO> присваивается id созданной заявки (Application)
+        loanOffers.forEach(offer -> offer.setApplicationId(applicationId));
 
         return new ResponseEntity<>(loanOffers, HttpStatus.OK);
 

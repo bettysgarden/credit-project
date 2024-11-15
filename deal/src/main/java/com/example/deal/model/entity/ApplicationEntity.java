@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -28,7 +28,7 @@ public class ApplicationEntity {
     private ClientEntity clientId;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "credit_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "credit_id", referencedColumnName = "id")
     private CreditEntity creditId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -39,16 +39,16 @@ public class ApplicationEntity {
     @Column(name = "applied_offer")
     private AppliedLoanOffer appliedOffer;
 
-    @Column(name = "creation_date")
-    private Date creationDate;
+    @Column(name = "creation_date", nullable = false)
+    private LocalDateTime creationDate;
 
     @Column(name = "sign_date")
-    private Date signDate;
+    private LocalDateTime signDate;
 
     @Column(name = "ses_code")
     private Integer sessionCode;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "status_history")
+    @Column(name = "status_history", nullable = false)
     private StatusHistory statusHistory;
 }

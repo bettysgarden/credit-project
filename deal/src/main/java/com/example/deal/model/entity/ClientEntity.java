@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -28,28 +28,28 @@ public class ClientEntity {
     @Column(name = "middle_name")
     private String middleName;
 
-    @Column(name = "birth_date", nullable = false)
-    private Date birthDate;
+    @Column(name = "birthdate", nullable = false)
+    private LocalDate birthDate;
 
     @Column(name = "email")
     private String email;
 
-    @Column(name = "dependent_amount", nullable = false)
+    @Column(name = "dependent_amount")
     private Integer dependentAmount;
 
     @Column(name = "account")
     private Integer account;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gender", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "gender", referencedColumnName = "id")
     private GenderEntity gender;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "marital_status", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "marital_status", referencedColumnName = "id")
     private MaritalStatusEntity maritalStatus;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "employment_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "employment_id", referencedColumnName = "id")
     private EmploymentEntity employment;
 
     @OneToOne(cascade = CascadeType.ALL)

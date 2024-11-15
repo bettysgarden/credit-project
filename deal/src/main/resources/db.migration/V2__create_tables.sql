@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS passport
 (
-    id 	            BIGINT PRIMARY KEY,
+    id 	            SERIAL PRIMARY KEY,
     series 			VARCHAR(4),
     number 			VARCHAR(6),
     issue_branch 	VARCHAR,
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS passport
 
 CREATE TABLE IF NOT EXISTS employment
 (
-    id 			            BIGINT PRIMARY KEY,
+    id 			            SERIAL PRIMARY KEY,
     status 					INT REFERENCES employment_status (id) ON DELETE CASCADE ON UPDATE NO ACTION,
 	employer_inn 			VARCHAR(12),
     salary 					DECIMAL,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS employment
 
 CREATE TABLE IF NOT EXISTS credit
 (
-    id       			BIGINT PRIMARY KEY,
+    id       			SERIAL PRIMARY KEY,
     amount 				DECIMAL,
     term 				INT,
     monthly_payment 	DECIMAL,
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS credit
 
 CREATE TABLE IF NOT EXISTS client
 (
-    id       			BIGINT PRIMARY KEY,
+    id       			SERIAL PRIMARY KEY,
     last_name 			VARCHAR                                                                             NOT NULL,
     first_name 			VARCHAR                                                                             NOT NULL,
     middle_name 		VARCHAR,
@@ -44,19 +44,19 @@ CREATE TABLE IF NOT EXISTS client
 	marital_status 		INT REFERENCES marital_status (id) ON DELETE CASCADE ON UPDATE NO ACTION,
 	dependent_amount 	INT,
     passport_id 		BIGINT REFERENCES passport (id) ON DELETE CASCADE ON UPDATE NO ACTION NOT NULL     UNIQUE,
-    employment_id 		BIGINT REFERENCES employment (id) ON DELETE CASCADE ON UPDATE NO ACTION NOT NULL   UNIQUE,
+    employment_id 		BIGINT REFERENCES employment (id) ON DELETE CASCADE ON UPDATE NO ACTION            UNIQUE,
     account 			VARCHAR
 );
 
 CREATE TABLE IF NOT EXISTS application
 (
-    id           	BIGINT PRIMARY KEY,
+    id           	SERIAL PRIMARY KEY,
     client_id 	   	BIGINT REFERENCES client (id) ON DELETE CASCADE ON UPDATE NO ACTION NOT NULL     UNIQUE,
-    credit_id 	   	BIGINT REFERENCES credit (id) ON DELETE CASCADE ON UPDATE NO ACTION NOT NULL     UNIQUE,
-    status         	INT REFERENCES application_status (id) ON DELETE CASCADE ON UPDATE NO ACTION,
-	creation_date  	TIMESTAMP,
+    credit_id 	   	BIGINT REFERENCES credit (id) ON DELETE CASCADE ON UPDATE NO ACTION              UNIQUE,
+    status         	INT REFERENCES application_status (id) ON DELETE CASCADE ON UPDATE NO ACTION NOT NULL,
+	creation_date  	TIMESTAMP NOT NULL,
     applied_offer  	JSONB,
     sign_date 	   	TIMESTAMP,
     ses_code 	   	BIGINT,
-    status_history 	JSONB                                                                                   NOT NULL
+    status_history 	JSONB NOT NULL
 );
