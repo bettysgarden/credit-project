@@ -1,12 +1,24 @@
 package com.example.deal.model.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+
 @Table(name = "passport")
-public class PassportEntity extends BaseEntity {
+public class PassportEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
     @Column(name = "series", length = 4)
     private String series;

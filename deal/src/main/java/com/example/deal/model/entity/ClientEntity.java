@@ -1,11 +1,23 @@
 package com.example.deal.model.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
 @Table(name = "client")
-public class ClientEntity extends BaseEntity {
+public class ClientEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
     @Column(name = "first_name", nullable = false)
     private String firstName;

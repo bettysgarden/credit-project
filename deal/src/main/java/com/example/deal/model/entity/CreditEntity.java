@@ -2,14 +2,25 @@ package com.example.deal.model.entity;
 
 import com.example.deal.model.entity.jsonb.PaymentScheduleElement;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
 @Table(name = "credit")
-public class CreditEntity extends BaseEntity {
+public class CreditEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
