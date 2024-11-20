@@ -1,12 +1,15 @@
 package com.example.deal.mapper;
 
-import com.example.credit.application.model.LoanOfferDTO;
 import com.example.deal.model.LoanOffer;
+import com.example.deal.model.dto.LoanOfferRequest;
+import com.example.deal.model.entity.jsonb.AppliedLoanOffer;
 import org.mapstruct.Mapper;
 
 @Mapper
 public interface LoanOfferMapper {
-    LoanOffer toEntity(LoanOfferDTO loanOfferDTO);
+    LoanOffer toEntity(LoanOfferRequest loanOfferDTO);
 
-    LoanOfferDTO toDTO(LoanOffer loanOffer);
+    LoanOfferRequest toDTO(LoanOffer loanOffer);
+
+    AppliedLoanOffer toJson(LoanOfferRequest loanOfferRequest);
 }

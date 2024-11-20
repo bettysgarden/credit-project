@@ -112,6 +112,7 @@ components:
       properties:
         applicationId:
           type: integer
+          format: int64
         requestedAmount:
           type: string
           format: decimal

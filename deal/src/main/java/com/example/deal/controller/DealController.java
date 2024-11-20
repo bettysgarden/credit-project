@@ -1,8 +1,8 @@
 package com.example.deal.controller;
 
-import com.example.credit.application.model.FinishRegistrationRequestDTO;
-import com.example.credit.application.model.LoanOfferDTO;
+import com.example.deal.model.dto.FinishRegistrationRequest;
 import com.example.deal.model.dto.LoanApplicationRequest;
+import com.example.deal.model.dto.LoanOfferRequest;
 import com.example.deal.model.dto.LoanOfferResponse;
 import com.example.deal.service.ApplicationService;
 import com.example.deal.service.ClientService;
@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -51,8 +50,10 @@ public class DealController {
     @PutMapping("/calculate/{applicationId}")
     public ResponseEntity<Void> dealCalculateApplicationIdPut(
             @Parameter(name = "applicationId", description = "Идентификатор заявки", required = true, in = ParameterIn.PATH) @PathVariable("applicationId") Integer applicationId,
-            @Parameter(name = "FinishRegistrationRequestDTO", description = "Данные для завершения регистрации", required = true) @Valid @RequestBody FinishRegistrationRequestDTO finishRegistrationRequestDTO
+            @Parameter(name = "FinishRegistrationRequestDTO", description = "Данные для завершения регистрации", required = true) @Valid @RequestBody FinishRegistrationRequest finishRegistrationRequest
     ) {
+        // TODO
+
         return new ResponseEntity<>(HttpStatus.OK);
 
     }
@@ -60,8 +61,10 @@ public class DealController {
     @Operation
     @PutMapping("/offer")
     public ResponseEntity<Void> dealOfferPut(
-            @Parameter(name = "LoanOfferDTO", description = "Выбранное кредитное предложение", required = true) @Valid @RequestBody LoanOfferDTO loanOfferDTO
+            @Parameter(name = "LoanOfferRequest", description = "Выбранное кредитное предложение", required = true)
+            @Valid @RequestBody LoanOfferRequest loanOfferRequest
     ) {
+        applicationService.updateApplication(loanOfferRequest);
         return new ResponseEntity<>(HttpStatus.OK);
 
     }

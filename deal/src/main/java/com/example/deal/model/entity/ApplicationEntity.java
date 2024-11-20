@@ -10,6 +10,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -50,5 +51,5 @@ public class ApplicationEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "status_history", nullable = false)
-    private StatusHistory statusHistory;
+    private List<StatusHistory> statusHistory;
 }
