@@ -15,7 +15,7 @@ import java.util.List;
 @Validated
 public interface ConveyorFeignClient {
     @PostMapping("/offers")
-    List<LoanOfferResponse> conveyorOffers(@RequestBody @Validated LoanApplicationRequest loanApplicationRequestDTO);
+    List<LoanOfferResponse> conveyorOffersPost(@RequestBody @Validated LoanApplicationRequest loanApplicationRequestDTO);
 
     @PostMapping("/calculation")
     CreditResponse conveyorCalculationPost(@RequestBody @Validated ScoringDataRequest scoringDataDTO);

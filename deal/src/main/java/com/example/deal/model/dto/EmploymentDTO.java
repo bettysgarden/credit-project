@@ -1,4 +1,4 @@
-package com.example.deal.model;
+package com.example.deal.model.dto;
 
 import com.example.deal.model.enums.EmploymentStatusEnum;
 import com.example.deal.model.enums.PositionEnum;
@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Employment {
+public class EmploymentDTO {
     private EmploymentStatusEnum employmentStatus;
     private String employerINN;
     private BigDecimal salary;

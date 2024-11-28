@@ -44,7 +44,7 @@ class ScoringDataMapperTest {
         employment.setEmploymentStatus(EmploymentDTO.EmploymentStatusEnum.EMPLOYED);
         employment.setEmployerINN("1234567890");
         employment.setSalary(BigDecimal.valueOf(50000));
-        employment.setPosition(EmploymentDTO.PositionEnum.MANAGER);
+        employment.setPosition(EmploymentDTO.PositionEnum.MID_MANAGER);
         employment.setWorkExperienceTotal(10);
         employment.setWorkExperienceCurrent(5);
 

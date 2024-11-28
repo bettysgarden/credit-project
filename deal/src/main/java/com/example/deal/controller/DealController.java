@@ -4,9 +4,8 @@ import com.example.deal.model.dto.FinishRegistrationRequest;
 import com.example.deal.model.dto.LoanApplicationRequest;
 import com.example.deal.model.dto.LoanOfferRequest;
 import com.example.deal.model.dto.LoanOfferResponse;
-import com.example.deal.service.ApplicationService;
-import com.example.deal.service.ClientService;
-import com.example.deal.service.OfferService;
+import com.example.deal.service.ApplicationManagementService;
+import com.example.deal.service.CreditService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -27,45 +26,36 @@ import java.util.List;
 @Slf4j
 public class DealController {
 
-    private final ApplicationService applicationService;
-    private final OfferService offerService;
-    private final ClientService clientService;
+    private final ApplicationManagementService applicationService;
+    private final CreditService creditService;
 
     @Operation
     @PostMapping("/application")
     public ResponseEntity<List<LoanOfferResponse>> dealApplicationPost(
             @Parameter(name = "LoanApplicationRequestDTO", description = "Данные для расчёта кредита", required = true) @Valid @RequestBody LoanApplicationRequest loanApplicationRequest) {
         log.info("Получен запрос на расчет кредитных предложений. Параметры: {}", loanApplicationRequest);
-
-        List<LoanOfferResponse> loanOffers = offerService.getLoanOffers(loanApplicationRequest);
-        Long clientId = clientService.createClient(loanApplicationRequest);
-        Long applicationId = applicationService.createApplication(loanApplicationRequest, clientId);
-        loanOffers.forEach(offer -> offer.setApplicationId(applicationId));
-
+        List<LoanOfferResponse> loanOffers = applicationService.createApplication(loanApplicationRequest);
         return new ResponseEntity<>(loanOffers, HttpStatus.OK);
-
     }
 
     @Operation
     @PutMapping("/calculate/{applicationId}")
-    public ResponseEntity<Void> dealCalculateApplicationIdPut(
-            @Parameter(name = "applicationId", description = "Идентификатор заявки", required = true, in = ParameterIn.PATH) @PathVariable("applicationId") Integer applicationId,
+    public ResponseEntity<String> dealCalculateApplicationIdPut(
+            @Parameter(name = "applicationId", description = "Идентификатор заявки", required = true, in = ParameterIn.PATH) @PathVariable("applicationId") Long applicationId,
             @Parameter(name = "FinishRegistrationRequestDTO", description = "Данные для завершения регистрации", required = true) @Valid @RequestBody FinishRegistrationRequest finishRegistrationRequest
     ) {
-        // TODO
-
-        return new ResponseEntity<>(HttpStatus.OK);
-
+        creditService.calculateCredit(applicationId, finishRegistrationRequest);
+        return ResponseEntity.ok("Заявка успешно обновлена. ");
     }
 
     @Operation
     @PutMapping("/offer")
-    public ResponseEntity<Void> dealOfferPut(
+    public ResponseEntity<String> dealOfferPut(
             @Parameter(name = "LoanOfferRequest", description = "Выбранное кредитное предложение", required = true)
             @Valid @RequestBody LoanOfferRequest loanOfferRequest
     ) {
-        applicationService.updateApplication(loanOfferRequest);
-        return new ResponseEntity<>(HttpStatus.OK);
+        applicationService.setPickedLoanOffer(loanOfferRequest);
+        return ResponseEntity.ok("Заявка успешно обновлена. ");
 
     }
 

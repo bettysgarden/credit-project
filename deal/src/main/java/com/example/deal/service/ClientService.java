@@ -1,13 +1,17 @@
 package com.example.deal.service;
 
+import com.example.deal.model.dto.FinishRegistrationRequest;
 import com.example.deal.model.dto.LoanApplicationRequest;
+import com.example.deal.model.dto.ScoringDataRequest;
+import com.example.deal.model.entity.ApplicationEntity;
 import com.example.deal.model.entity.ClientEntity;
 import jakarta.validation.Valid;
 
 public interface ClientService {
-    Long createClient(@Valid LoanApplicationRequest loanApplicationRequest);
+    ClientEntity createClient(@Valid LoanApplicationRequest loanApplicationRequest);
 
     ClientEntity getClient(Long clientId);
 
+    ScoringDataRequest getScoringInformation(ApplicationEntity application, FinishRegistrationRequest finishRegistrationRequest);
 }
 

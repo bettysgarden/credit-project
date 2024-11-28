@@ -1,5 +1,7 @@
 package com.example.deal.model.dto;
 
+import com.example.deal.model.enums.GenderEnum;
+import com.example.deal.model.enums.MaritalStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,15 +18,15 @@ public class ScoringDataRequest {
     private String firstName;
     private String lastName;
     private String middleName;
-    private Integer gender;
+    private GenderEnum gender;
     private LocalDate birthdate;
     private String passportSeries;
     private String passportNumber;
     private LocalDate passportIssueDate;
     private String passportIssueBranch;
-    private Integer maritalStatus;
+    private MaritalStatusEnum maritalStatus;
     private Integer dependentAmount;
-    private Integer employment;
+    private EmploymentDTO employment;
     private String account;
     private Boolean isInsuranceEnabled;
     private Boolean isSalaryClient;

@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoanOfferResponse {
-    private Long applicationId;
+    private Integer applicationId;
     private BigDecimal requestedAmount;
     private BigDecimal totalAmount;
     private Integer term;

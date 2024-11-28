@@ -7,9 +7,9 @@ spring:
 
   jpa:
     database: POSTGRESQL
-    show-sql: true
+    show-sql: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5430/credit}

@@ -15,7 +15,7 @@ public class ApplicationStatusEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Long id;
+    private Integer id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, unique = true)

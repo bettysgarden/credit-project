@@ -20,7 +20,7 @@ public class CreditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;

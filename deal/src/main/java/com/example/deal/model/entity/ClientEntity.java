@@ -17,7 +17,7 @@ public class ClientEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -38,7 +38,7 @@ public class ClientEntity {
     private Integer dependentAmount;
 
     @Column(name = "account")
-    private Integer account;
+    private String account;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gender", referencedColumnName = "id")
