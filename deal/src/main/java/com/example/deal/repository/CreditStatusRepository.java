@@ -8,8 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-
 public interface CreditStatusRepository extends JpaRepository<CreditStatusEntity, Long> {
     Optional<CreditStatusEntity> findByTitle(CreditStatusEnum title);
-
 }

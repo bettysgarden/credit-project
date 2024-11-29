@@ -83,17 +83,6 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientEntity getClient(Long clientId) {
-        log.debug("Получение клиента с ID: {}", clientId);
-
-        return repository.findById(clientId)
-                .orElseThrow(() -> {
-                    log.error("Клиент с ID {} не найден", clientId);
-                    return new ClientServiceException("Клиент с ID не найден: " + clientId);
-                });
-    }
-
-    @Override
     public ScoringDataRequest getScoringInformation(ApplicationEntity application, FinishRegistrationRequest finishRegistrationRequest) {
         log.debug("Начало формирования ScoringDataRequest для application: {}", application.getId());
 

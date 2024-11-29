@@ -10,8 +10,6 @@ import jakarta.validation.Valid;
 public interface ClientService {
     ClientEntity createClient(@Valid LoanApplicationRequest loanApplicationRequest);
 
-    ClientEntity getClient(Long clientId);
-
     ScoringDataRequest getScoringInformation(ApplicationEntity application, FinishRegistrationRequest finishRegistrationRequest);
 }
 
