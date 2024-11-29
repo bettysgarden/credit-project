@@ -17,6 +17,27 @@ class CreditMapperTest {
 
     private final CreditMapper mapper = Mappers.getMapper(CreditMapper.class);
 
+    private static CreditResponse getCreditResponse() {
+        PaymentScheduleElementResponse scheduleElementResponse = new PaymentScheduleElementResponse(
+                1,
+                LocalDate.of(2024, 1, 15),
+                new BigDecimal("10000.00"),
+                new BigDecimal("3000.00"),
+                new BigDecimal("7000.00"),
+                new BigDecimal("93000.00")
+        );
+        return new CreditResponse(
+                new BigDecimal("100000"),
+                12,
+                new BigDecimal("8500"),
+                new BigDecimal("15.0"),
+                new BigDecimal("18.0"),
+                true,
+                false,
+                List.of(scheduleElementResponse)
+        );
+    }
+
     @Test
     void testToEntity_validCreditResponse_shouldMapCorrectly() {
         CreditResponse creditResponse = getCreditResponse();
@@ -44,27 +65,6 @@ class CreditMapperTest {
         assertEquals(creditResponse.getPaymentSchedule().get(0).getInterestPayment(), firstElement.getInterestPayment());
         assertEquals(creditResponse.getPaymentSchedule().get(0).getDebtPayment(), firstElement.getDebtPayment());
         assertEquals(creditResponse.getPaymentSchedule().get(0).getRemainingDebt(), firstElement.getRemainingDebt());
-    }
-
-    private static CreditResponse getCreditResponse() {
-        PaymentScheduleElementResponse scheduleElementResponse = new PaymentScheduleElementResponse(
-                1,
-                LocalDate.of(2024, 1, 15),
-                new BigDecimal("10000.00"),
-                new BigDecimal("3000.00"),
-                new BigDecimal("7000.00"),
-                new BigDecimal("93000.00")
-        );
-        return new CreditResponse(
-                new BigDecimal("100000"),
-                12,
-                new BigDecimal("8500"),
-                new BigDecimal("15.0"),
-                new BigDecimal("18.0"),
-                true,
-                false,
-                List.of(scheduleElementResponse)
-        );
     }
 
     @Test

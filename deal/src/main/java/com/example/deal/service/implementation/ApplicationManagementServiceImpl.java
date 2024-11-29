@@ -100,6 +100,4 @@ public class ApplicationManagementServiceImpl implements ApplicationManagementSe
         repository.save(applicationEntity);
         log.info("Кредит обновлен для заявки ID: {}", applicationEntity.getId());
     }
-
-
 }
