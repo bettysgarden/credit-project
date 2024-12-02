@@ -1,0 +1,18 @@
+server:
+  port: 8383
+spring:
+  application:
+    name: dossier
+logging:
+  level:
+    org:
+      springframework:
+        web:
+          WARN
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  model-and-view-allowed: false
