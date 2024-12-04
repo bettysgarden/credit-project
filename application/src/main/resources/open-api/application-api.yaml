@@ -24,7 +24,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/LoanOfferDTO'
   /application/offer:
-    post:
+    put:
       summary: Выбор одного из предложений
       requestBody:
         description: Выбранное кредитное предложение
