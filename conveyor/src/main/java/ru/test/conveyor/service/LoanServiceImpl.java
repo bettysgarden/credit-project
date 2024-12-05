@@ -5,13 +5,11 @@ import com.example.credit.application.model.LoanOfferDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.test.conveyor.exception.InvalidLoanApplicationException;
 import ru.test.conveyor.exception.LoanCalculationException;
 import ru.test.conveyor.mapper.LoanApplicationMapper;
 import ru.test.conveyor.mapper.LoanOfferMapper;
 import ru.test.conveyor.model.entity.LoanApplication;
 import ru.test.conveyor.model.entity.LoanOffer;
-import ru.test.conveyor.util.LoanApplicationValidator;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -29,22 +27,12 @@ public class LoanServiceImpl implements LoanService {
 
     private final LoanOfferMapper loanOfferMapper;
     private final LoanApplicationMapper loanApplicationMapper;
-    private final LoanApplicationValidator validator;
 
     @Override
     public List<LoanOfferDTO> getLoanOffers(LoanApplicationRequestDTO loanApplicationDTO) {
         log.info("Получен запрос на получение кредитных предложений для заявки: {}", loanApplicationDTO);
 
         LoanApplication loanApplication = loanApplicationMapper.toEntity(loanApplicationDTO);
-
-        List<String> validationErrors = validator.validate(loanApplication);
-
-        if (!validationErrors.isEmpty()) {
-            log.warn("Заявка не прошла проверку: {}", validationErrors);
-            throw new InvalidLoanApplicationException("Предварительная проверка не пройдена.", validationErrors);
-        }
-
-        log.info("Предварительная проверка пройдена успешно, формируем кредитные предложения");
 
 
         try {
@@ -63,9 +51,6 @@ public class LoanServiceImpl implements LoanService {
             offers.sort(Comparator.comparing(LoanOfferDTO::getRate, Comparator.nullsLast(Comparator.naturalOrder())));
             log.info("Сформировано {} кредитных предложений для заявки: {}", offers.size(), loanApplication);
             return offers;
-        } catch (InvalidLoanApplicationException e) {
-            log.warn(e.getLocalizedMessage());
-            throw e;
         } catch (Exception e) {
             log.error("Ошибка при формировании кредитных предложений: ", e);
             throw new LoanCalculationException("Ошибка при расчете предложений.");

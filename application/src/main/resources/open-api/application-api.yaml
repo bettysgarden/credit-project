@@ -1,0 +1,111 @@
+openapi: 3.0.0
+info:
+  title: Application Service API
+  description: API
+  version: 1.0.0
+paths:
+  /application:
+    post:
+      summary: Прескоринг + запрос на расчёт возможных условий кредит
+      requestBody:
+        description: Данные для расчёта кредита
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanApplicationRequestDTO'
+      responses:
+        '200':
+          description:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanOfferDTO'
+  /application/offer:
+    put:
+      summary: Выбор одного из предложений
+      requestBody:
+        description: Выбранное кредитное предложение
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanOfferDTO'
+      responses:
+        '204':
+          description: Предложение успешно принято, тело ответа отсутствует
+
+components:
+  schemas:
+    LoanApplicationRequestDTO:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+        term:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        email:
+          type: string
+          format: email
+        birthdate:
+          type: string
+          format: date
+        passportSeries:
+          type: string
+        passportNumber:
+          type: string
+      required:
+        - amount
+        - term
+        - firstName
+        - lastName
+        - birthdate
+        - passportSeries
+        - passportNumber
+        - email
+      example:
+        {
+          "amount": "100000.00",
+          "term": 12,
+          "firstName": "Ivan",
+          "lastName": "Petrov",
+          "middleName": "Ivanovich",
+          "email": "ivan.petrov@example.com",
+          "birthdate": "1985-04-12",
+          "passportSeries": "1234",
+          "passportNumber": "567890"
+        }
+
+    LoanOfferDTO:
+      type: object
+      properties:
+        applicationId:
+          type: integer
+          format: int64
+        requestedAmount:
+          type: string
+          format: decimal
+        totalAmount:
+          type: string
+          format: decimal
+        term:
+          type: integer
+        monthlyPayment:
+          type: string
+          format: decimal
+        rate:
+          type: string
+          format: decimal
+        isInsuranceEnabled:
+          type: boolean
+        isSalaryClient:
+          type: boolean

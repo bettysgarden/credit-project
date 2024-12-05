@@ -164,6 +164,7 @@
     <modules>
         <module>conveyor</module>
         <module>deal</module>
+        <module>application</module>
     </modules>
 
 </project>

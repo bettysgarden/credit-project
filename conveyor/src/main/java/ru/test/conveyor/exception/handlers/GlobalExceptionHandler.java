@@ -12,16 +12,6 @@ import java.util.Collections;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(InvalidLoanApplicationException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidLoanApplication(InvalidLoanApplicationException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                InvalidLoanApplicationException.INVALID_LOAN_APPLICATION,
-                "Предварительная проверка не пройдена",
-                ex.getErrors()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
     @ExceptionHandler(LoanCalculationException.class)
     public ResponseEntity<ErrorResponse> handleLoanCalculationException(LoanCalculationException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
