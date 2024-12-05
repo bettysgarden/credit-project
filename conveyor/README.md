@@ -50,7 +50,7 @@
 
 - **amount**: `BigDecimal` — Запрашиваемая сумма кредита
 - **term**: `Integer` — Срок кредита в месяцах
-- **employment**: `EmploymentDTO` — Информация о занятости
+- **employmentDTO**: `EmploymentDTO` — Информация о занятости
 - **isInsuranceEnabled**: `Boolean` — Включена ли страховка
 
 ### CreditDTO

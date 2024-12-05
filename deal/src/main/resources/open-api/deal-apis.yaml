@@ -1,0 +1,197 @@
+openapi: 3.0.0
+info:
+  title: Deal Service API
+  description: API для расчёта возможных условий кредита и завершения регистрации
+  version: 1.0.0
+paths:
+  /deal/application:
+    post:
+      summary: Расчёт возможных условий кредита
+      requestBody:
+        description: Данные для расчёта кредита
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanApplicationRequestDTO'
+      responses:
+        '200':
+          description: Список возможных кредитных предложений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanOfferDTO'
+
+  /deal/offer:
+    put:
+      summary: Выбор одного из предложений
+      requestBody:
+        description: Выбранное кредитное предложение
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanOfferDTO'
+      responses:
+        '204':
+          description: Предложение успешно принято, тело ответа отсутствует
+
+  /deal/calculate/{applicationId}:
+    put:
+      summary: Завершение регистрации и полный расчёт кредита
+      parameters:
+        - in: path
+          name: applicationId
+          schema:
+            type: integer
+          required: true
+          description: Идентификатор заявки
+      requestBody:
+        description: Данные для завершения регистрации
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinishRegistrationRequestDTO'
+      responses:
+        '204':
+          description: Регистрация завершена, тело ответа отсутствует
+
+components:
+  schemas:
+    LoanApplicationRequestDTO:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+        term:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        email:
+          type: string
+          format: email
+        birthdate:
+          type: string
+          format: date
+        passportSeries:
+          type: string
+        passportNumber:
+          type: string
+      required:
+        - amount
+        - term
+        - firstName
+        - lastName
+        - birthdate
+        - passportSeries
+        - passportNumber
+        - email
+      example:
+        {
+          "amount": "100000.00",
+          "term": 12,
+          "firstName": "Ivan",
+          "lastName": "Petrov",
+          "middleName": "Ivanovich",
+          "email": "ivan.petrov@example.com",
+          "birthdate": "1985-04-12",
+          "passportSeries": "1234",
+          "passportNumber": "567890"
+        }
+
+    LoanOfferDTO:
+      type: object
+      properties:
+        applicationId:
+          type: integer
+          format: int64
+        requestedAmount:
+          type: string
+          format: decimal
+        totalAmount:
+          type: string
+          format: decimal
+        term:
+          type: integer
+        monthlyPayment:
+          type: string
+          format: decimal
+        rate:
+          type: string
+          format: decimal
+        isInsuranceEnabled:
+          type: boolean
+        isSalaryClient:
+          type: boolean
+
+
+    FinishRegistrationRequestDTO:
+      type: object
+      properties:
+        gender:
+          type: string
+          enum:
+            - MALE
+            - FEMALE
+            - NON_BINARY
+        maritalStatus:
+          type: string
+          enum:
+            - MARRIED
+            - SINGLE
+            - DIVORCED
+            - WIDOW_WIDOWER
+        dependentAmount:
+          type: integer
+        passportIssueDate:
+          type: string
+          format: date
+        passportIssueBranch:
+          type: string
+        employment:
+          $ref: '#/components/schemas/EmploymentDTO'
+        account:
+          type: string
+      required:
+        - gender
+        - maritalStatus
+        - dependentAmount
+        - passportIssueDate
+        - passportIssueBranch
+        - employment
+        - account
+
+    EmploymentDTO:
+      type: object
+      properties:
+        employmentStatus:
+          type: string
+          enum:
+            - EMPLOYED
+            - SELF_EMPLOYED
+            - UNEMPLOYED
+            - BUSINESS_OWNER
+        employerINN:
+          type: string
+        salary:
+          type: string
+          format: decimal
+        position:
+          type: string
+          enum:
+            - MID_MANAGER
+            - TOP_MANAGER
+            - WORKER
+            - OWNER
+        workExperienceTotal:
+          type: integer
+        workExperienceCurrent:
+          type: integer

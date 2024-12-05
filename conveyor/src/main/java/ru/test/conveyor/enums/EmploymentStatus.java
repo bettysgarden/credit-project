@@ -1,5 +1,5 @@
 package ru.test.conveyor.enums;
 
 public enum EmploymentStatus {
-    UNEMPLOYED, EMPLOYED, SELF_EMPLOYED, RETIRED, BUSINESS_OWNER
+    UNEMPLOYED, SELF_EMPLOYED, EMPLOYED, BUSINESS_OWNER
 }

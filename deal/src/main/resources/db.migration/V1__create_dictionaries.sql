@@ -1,0 +1,150 @@
+CREATE TABLE IF NOT EXISTS employment_status
+(
+	id      SERIAL PRIMARY KEY,
+	title   VARCHAR UNIQUE
+);
+
+INSERT
+	INTO
+	employment_status (title)
+VALUES ('UNEMPLOYED') ON CONFLICT DO NOTHING;
+
+INSERT
+	INTO
+	employment_status (title)
+VALUES ('SELF_EMPLOYED') ON CONFLICT DO NOTHING;
+
+INSERT
+	INTO
+	employment_status (title)
+VALUES ('EMPLOYED') ON CONFLICT DO NOTHING;
+
+INSERT
+	INTO
+	employment_status (title)
+VALUES ('BUSINESS_OWNER') ON CONFLICT DO NOTHING;
+
+
+CREATE TABLE IF NOT EXISTS "position"
+(
+	id      SERIAL PRIMARY KEY,
+	title   VARCHAR UNIQUE
+);
+
+INSERT
+	INTO
+	"position" (title)
+VALUES ('WORKER') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	"position" (title)
+VALUES ('MID_MANAGER') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	"position" (title)
+VALUES ('TOP_MANAGER') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	"position" (title)
+VALUES ('OWNER') ON CONFLICT DO NOTHING;
+
+
+CREATE TABLE IF NOT EXISTS marital_status
+(
+	id      SERIAL PRIMARY KEY,
+	title   VARCHAR UNIQUE
+);
+
+INSERT
+	INTO
+	marital_status (title)
+VALUES ('MARRIED') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	marital_status (title)
+VALUES ('DIVORCED') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	marital_status (title)
+VALUES ('SINGLE') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	marital_status (title)
+VALUES ('WIDOW_WIDOWER') ON CONFLICT DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS gender
+(
+	id      SERIAL PRIMARY KEY,
+	title   VARCHAR UNIQUE
+);
+
+INSERT
+	INTO
+	gender (title)
+VALUES ('MALE') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	gender (title)
+VALUES ('FEMALE') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	gender (title)
+VALUES ('NON_BINARY') ON CONFLICT DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS application_status
+(
+	id      SERIAL PRIMARY KEY,
+	title   VARCHAR UNIQUE
+);
+
+INSERT
+	INTO
+	application_status (title)
+VALUES ('PREAPPROVAL') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	application_status (title)
+VALUES ('APPROVED') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	application_status (title)
+VALUES ('CC_DENIED') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	application_status (title)
+VALUES ('CC_APPROVED') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	application_status (title)
+VALUES ('PREPARE_DOCUMENTS') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	application_status (title)
+VALUES ('DOCUMENT_CREATED') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	application_status (title)
+VALUES ('CLIENT_DENIED') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	application_status (title)
+VALUES ('DOCUMENT_SIGNED') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	application_status (title)
+VALUES ('CREDIT_ISSUED') ON CONFLICT DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS credit_status
+(
+	id      SERIAL PRIMARY KEY,
+	title   VARCHAR UNIQUE
+);
+
+INSERT
+	INTO
+	credit_status (title)
+VALUES ('CALCULATED') ON CONFLICT DO NOTHING;
+INSERT
+	INTO
+	credit_status (title)
+VALUES ('ISSUED') ON CONFLICT DO NOTHING;
