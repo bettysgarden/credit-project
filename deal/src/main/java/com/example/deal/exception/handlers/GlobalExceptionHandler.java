@@ -24,8 +24,6 @@ public class GlobalExceptionHandler {
     private HttpStatus determineHttpStatus(BaseCustomException ex) {
         if (ex instanceof InvalidLoanApplicationException || ex instanceof InvalidScoringDataException) {
             return HttpStatus.BAD_REQUEST;
-        } else if (ex instanceof LoanCalculationException || ex instanceof CreditCalculationException) {
-            return HttpStatus.INTERNAL_SERVER_ERROR;
         } else if (ex instanceof ConveyorFeignClientException) {
             return HttpStatus.SERVICE_UNAVAILABLE;
         } else if (ex instanceof DatabaseOperationException) {
