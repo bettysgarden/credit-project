@@ -11,12 +11,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
-@FeignClient(value = "${feign.client.value}", url = "${feign.client.url}", path = "${feign.client.path}")
+@FeignClient(name = "ConveyorFeignClient",
+        url = "${feign.client.conveyor.url}")
 @Validated
 public interface ConveyorFeignClient {
-    @PostMapping("/offers")
+    @PostMapping("${feign.client.conveyor.path.offers}")
     List<LoanOfferResponse> conveyorOffersPost(@RequestBody @Validated LoanApplicationRequest loanApplicationRequestDTO);
 
-    @PostMapping("/calculation")
+    @PostMapping("${feign.client.conveyor.path.calculation}")
     CreditResponse conveyorCalculationPost(@RequestBody @Validated ScoringDataRequest scoringDataDTO);
 }
