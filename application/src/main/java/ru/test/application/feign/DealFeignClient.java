@@ -11,12 +11,12 @@ import ru.test.application.model.dto.LoanOfferResponse;
 
 import java.util.List;
 
-@FeignClient(value = "${feign.client.value}", url = "${feign.client.url}", path = "${feign.client.path}")
+@FeignClient(name = "DealFeignClient", url = "${feign.client.deal.url}")
 @Validated
 public interface DealFeignClient {
-    @PostMapping("/application")
+    @PostMapping("${feign.client.deal.path.application}")
     List<LoanOfferResponse> dealCreateApplicationPost(@RequestBody @Validated LoanApplicationRequest loanApplicationRequestDTO);
 
-    @PutMapping("/offer")
+    @PutMapping("${feign.client.deal.path.offer}")
     void dealSetOfferApplicationPut(@RequestBody @Validated LoanOfferRequest loanOfferRequest);
 }
