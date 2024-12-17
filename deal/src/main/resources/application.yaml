@@ -5,6 +5,20 @@ spring:
   application:
     name: deal
 
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:192.168.0.103:9092}
+    producer:
+      client-id: my_producer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    topic:
+      finish-registration: finish-registration
+      create-documents: create-documents
+      send-documents: send-documents
+      send-ses: send-ses
+      credit-issued: credit-issued
+      application-denied: application-denied
+
   jpa:
     database: POSTGRESQL
     show-sql: false
