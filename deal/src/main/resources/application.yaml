@@ -46,6 +46,8 @@ springdoc:
 
 feign:
   client:
-    value: ${FEIGN_CLIENT_VALUE:clientFeign}
-    url: ${FEIGN_CLIENT_URL:http://localhost:8080}
-    path: /conveyor
+    conveyor:
+      url: ${FEIGN_CLIENT_URL:http://localhost:8080}
+      path:
+        offers: /conveyor/offers
+        calculation: /conveyor/calculation
