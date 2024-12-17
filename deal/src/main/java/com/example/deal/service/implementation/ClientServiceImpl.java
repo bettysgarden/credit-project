@@ -26,28 +26,6 @@ public class ClientServiceImpl implements ClientService {
     private final PassportRepository passportRepository;
     private final PassportValidator passportValidator;
 
-    private static ScoringDataRequest getScoringDataRequest(ApplicationEntity application, FinishRegistrationRequest finishRegistrationRequest, ClientEntity client) {
-        ScoringDataRequest scoringDataRequest = new ScoringDataRequest();
-        scoringDataRequest.setFirstName(client.getFirstName());
-        scoringDataRequest.setMiddleName(client.getMiddleName());
-        scoringDataRequest.setLastName(client.getLastName());
-        scoringDataRequest.setGender(finishRegistrationRequest.getGender());
-        scoringDataRequest.setBirthdate(client.getBirthDate());
-        scoringDataRequest.setPassportSeries(client.getPassport().getSeries());
-        scoringDataRequest.setPassportNumber(client.getPassport().getNumber());
-        scoringDataRequest.setPassportIssueDate(finishRegistrationRequest.getPassportIssueDate());
-        scoringDataRequest.setPassportIssueBranch(finishRegistrationRequest.getPassportIssueBranch());
-        scoringDataRequest.setMaritalStatus(finishRegistrationRequest.getMaritalStatus());
-        scoringDataRequest.setDependentAmount(finishRegistrationRequest.getDependentAmount());
-        scoringDataRequest.setEmployment(finishRegistrationRequest.getEmploymentDTO());
-        scoringDataRequest.setAccount(finishRegistrationRequest.getAccount());
-        scoringDataRequest.setIsSalaryClient(application.getAppliedOffer().getIsSalaryClient());
-        scoringDataRequest.setIsInsuranceEnabled(application.getAppliedOffer().getIsInsuranceEnabled());
-        scoringDataRequest.setAmount(application.getAppliedOffer().getTotalAmount());
-        scoringDataRequest.setTerm(application.getAppliedOffer().getTerm());
-        return scoringDataRequest;
-    }
-
     @Override
     public ClientEntity createClient(LoanApplicationRequest loanApplicationRequest) {
         log.debug("Начало создания клиента с данными: {}", loanApplicationRequest);
@@ -106,4 +84,27 @@ public class ClientServiceImpl implements ClientService {
             throw new ClientServiceException("Ошибка формирования ScoringDataRequest", e);
         }
     }
+
+    private static ScoringDataRequest getScoringDataRequest(ApplicationEntity application, FinishRegistrationRequest finishRegistrationRequest, ClientEntity client) {
+        ScoringDataRequest scoringDataRequest = new ScoringDataRequest();
+        scoringDataRequest.setFirstName(client.getFirstName());
+        scoringDataRequest.setMiddleName(client.getMiddleName());
+        scoringDataRequest.setLastName(client.getLastName());
+        scoringDataRequest.setGender(finishRegistrationRequest.getGender());
+        scoringDataRequest.setBirthdate(client.getBirthDate());
+        scoringDataRequest.setPassportSeries(client.getPassport().getSeries());
+        scoringDataRequest.setPassportNumber(client.getPassport().getNumber());
+        scoringDataRequest.setPassportIssueDate(finishRegistrationRequest.getPassportIssueDate());
+        scoringDataRequest.setPassportIssueBranch(finishRegistrationRequest.getPassportIssueBranch());
+        scoringDataRequest.setMaritalStatus(finishRegistrationRequest.getMaritalStatus());
+        scoringDataRequest.setDependentAmount(finishRegistrationRequest.getDependentAmount());
+        scoringDataRequest.setEmployment(finishRegistrationRequest.getEmploymentDTO());
+        scoringDataRequest.setAccount(finishRegistrationRequest.getAccount());
+        scoringDataRequest.setIsSalaryClient(application.getAppliedOffer().getIsSalaryClient());
+        scoringDataRequest.setIsInsuranceEnabled(application.getAppliedOffer().getIsInsuranceEnabled());
+        scoringDataRequest.setAmount(application.getAppliedOffer().getTotalAmount());
+        scoringDataRequest.setTerm(application.getAppliedOffer().getTerm());
+        return scoringDataRequest;
+    }
+
 }
