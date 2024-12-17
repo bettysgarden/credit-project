@@ -3,12 +3,31 @@ server:
 spring:
   application:
     name: dossier
+
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:192.168.0.103:9092}
+    consumer:
+      client-id: my-consumer-group
+      group-id: group_id
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+    topic:
+      finish-registration: finish-registration
+      create-documents: create-documents
+      send-documents: send-documents
+      send-ses: send-ses
+      credit-issued: credit-issued
+      application-denied: application-denied
+
 logging:
   level:
     org:
       springframework:
         web:
           WARN
+
 springdoc:
   api-docs:
     path: /api-docs
