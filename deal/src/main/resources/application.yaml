@@ -6,11 +6,11 @@ spring:
     name: deal
 
   kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:192.168.0.103:9092}
     producer:
       client-id: my_producer
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:192.168.1.127:9092}
     topic:
       finish-registration: finish-registration
       create-documents: create-documents
@@ -60,6 +60,8 @@ springdoc:
 
 feign:
   client:
-    value: ${FEIGN_CLIENT_VALUE:clientFeign}
-    url: ${FEIGN_CLIENT_URL:http://localhost:8080}
-    path: /conveyor
+    conveyor:
+      url: ${FEIGN_CLIENT_URL:http://localhost:8080}
+      path:
+        offers: /conveyor/offers
+        calculation: /conveyor/calculation

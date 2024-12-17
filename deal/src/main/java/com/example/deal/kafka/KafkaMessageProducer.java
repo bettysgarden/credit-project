@@ -1,5 +1,6 @@
 package com.example.deal.kafka;
 
+import com.example.deal.model.dto.EmailMessageDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -9,15 +10,15 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class Publisher {
+public class KafkaMessageProducer {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, EmailMessageDTO> kafkaTemplate;
 
-    public void send(String topicName, String payload) {
-        kafkaTemplate.send(topicName, payload)
+    public void sendMessage(String topic, EmailMessageDTO message) {
+        kafkaTemplate.send(topic, message)
                 .exceptionally(ex -> {
                             log.error("Error. Unable to send message for {} due to: {}",
-                                    topicName,
+                                    topic,
                                     ex.getMessage());
                             return null;
                         }

@@ -1,5 +1,5 @@
 package com.example.deal.model.enums;
 
 public enum ThemeEnum {
-    LETTER
+    FINISH_REGISTRATION, CREATE_DOCUMENTS, SEND_DOCUMENTS, SEND_SES, CREDIT_ISSUED, APPLICATION_DENIED
 }

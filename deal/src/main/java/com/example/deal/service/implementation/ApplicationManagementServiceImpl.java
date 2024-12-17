@@ -8,13 +8,12 @@ import com.example.deal.model.dto.LoanOfferResponse;
 import com.example.deal.model.entity.ApplicationEntity;
 import com.example.deal.model.entity.ClientEntity;
 import com.example.deal.model.entity.CreditEntity;
+import com.example.deal.model.entity.EmailMessage;
 import com.example.deal.model.entity.jsonb.AppliedLoanOffer;
 import com.example.deal.model.enums.ApplicationStatusEnum;
+import com.example.deal.model.enums.ThemeEnum;
 import com.example.deal.repository.ApplicationRepository;
-import com.example.deal.service.ApplicationManagementService;
-import com.example.deal.service.ApplicationStatusService;
-import com.example.deal.service.ClientService;
-import com.example.deal.service.LoanOfferService;
+import com.example.deal.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +30,7 @@ public class ApplicationManagementServiceImpl implements ApplicationManagementSe
     private final ClientService clientService;
     private final LoanOfferService offerService;
     private final ApplicationStatusService applicationStatusService;
+    private final MessageSenderService messageSenderService;
 
     @Override
     public List<LoanOfferResponse> createApplication(LoanApplicationRequest loanApplicationRequest) {
@@ -54,6 +54,8 @@ public class ApplicationManagementServiceImpl implements ApplicationManagementSe
 
         AppliedLoanOffer appliedLoanOffer = offerService.setPickedLoanOffer(loanOfferRequest, applicationEntity);
         applyLoanOffer(applicationEntity, appliedLoanOffer);
+
+        messageSenderService.sendClientEmail(new EmailMessage(applicationEntity.getClient().getEmail(), ThemeEnum.FINISH_REGISTRATION, applicationEntity.getId()));
     }
 
     private void applyLoanOffer(ApplicationEntity applicationEntity, AppliedLoanOffer loanOffer) {
