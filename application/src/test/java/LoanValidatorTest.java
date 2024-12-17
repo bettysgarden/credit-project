@@ -1,13 +1,11 @@
-package ru.test.conveyor.loan;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
-import ru.test.conveyor.model.entity.LoanApplication;
-import ru.test.conveyor.util.LoanApplicationValidator;
+import ru.test.application.model.entity.LoanApplication;
+import ru.test.application.util.LoanApplicationValidator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

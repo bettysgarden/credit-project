@@ -1,7 +1,7 @@
-package ru.test.conveyor.util;
+package ru.test.application.util;
 
 import org.springframework.stereotype.Component;
-import ru.test.conveyor.model.entity.LoanApplication;
+import ru.test.application.model.entity.LoanApplication;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
