@@ -1,5 +1,5 @@
 package ru.test.conveyor.enums;
 
 public enum Position {
-    MANAGER, TOP_MANAGER, WORKER
+    WORKER, MID_MANAGER, TOP_MANAGER, OWNER
 }
