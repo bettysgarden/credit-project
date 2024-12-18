@@ -13,5 +13,6 @@ public class EmailServiceImpl implements EmailService {
     public void sendEmail(EmailMessageDTO emailMessage) {
 
         log.warn("LIZAAAAAAA LIZAAAAAAA LIZAAAAAAA LIZAAAAAAA : we are at sending email stage");
+        log.warn(emailMessage.toString());
     }
 }
